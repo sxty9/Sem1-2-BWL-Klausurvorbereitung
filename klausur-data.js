@@ -186,7 +186,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "ifv0a7nxcai3",
-      "text": "Planung ist den Zufall durch den Irrtum zu ersetzen.",
+      "text": "Planung ist, den Zufall durch den Irrtum zu ersetzen.",
       "height": "2px"
     },
     {
@@ -206,6 +206,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:46:16.363Z"
+    "lastSaved": "2026-06-02T11:59:08.102Z"
   }
 };
