@@ -160,41 +160,49 @@
   }
 
   /* Anki cards dialog */
-  #ankiDlg { max-width: 720px; width: 96%; padding: 0; overflow: hidden; }
+  #ankiDlg { max-width: 760px; width: 96%; padding: 0; overflow: hidden; }
   #ankiDlg .anki-head {
     padding: 16px 20px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
   }
   #ankiDlg .anki-head h3 { margin: 0; font-size: 15px; }
   #ankiDlg .anki-head .sub { color: var(--muted); font-size: 12px; }
-  .anki-cards { max-height: 55vh; overflow-y: auto; }
-  .card-row {
-    display: grid; grid-template-columns: 1fr 1fr auto;
-    gap: 8px; padding: 10px 20px;
-    border-bottom: 1px solid var(--border); align-items: start;
+  .anki-cards { max-height: 62vh; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* One self-contained editable card */
+  .card-item {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
   }
-  .card-row:last-child { border-bottom: none; }
-  .card-row input, .card-row textarea {
-    background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 6px;
-    padding: 8px 10px; font-size: 13px; outline: none;
-    font-family: inherit; resize: vertical; min-height: 38px;
-    overflow-y: hidden; box-sizing: border-box;
+  .card-item:focus-within { border-color: var(--accent); }
+  .card-item .card-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--muted); letter-spacing: .5px;
   }
-  .card-row input:focus, .card-row textarea:focus { border-color: var(--accent); }
-  .card-row input::placeholder, .card-row textarea::placeholder { color: var(--muted); }
-  .card-row .rm {
+  .card-item .card-bar .num { text-transform: uppercase; font-weight: 600; }
+  .card-item .card-bar .rm {
     background: transparent; border: none; color: var(--muted);
-    cursor: pointer; font-size: 16px; padding: 6px; line-height: 1; margin-top: 4px;
+    cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1;
   }
-  .card-row .rm:hover { color: var(--danger); }
-  .card-row-header {
-    display: grid; grid-template-columns: 1fr 1fr auto;
-    gap: 8px; padding: 8px 20px;
-    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
-    border-bottom: 1px solid var(--border);
+  .card-item .card-bar .rm:hover { color: var(--danger); }
+  .card-field { display: flex; flex-direction: column; gap: 4px; }
+  .card-field > label {
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .6px; font-weight: 600;
   }
-  .card-row-header span:last-child { width: 28px; }
+  .card-field textarea {
+    background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 9px 11px; font-size: 14px; line-height: 1.45; outline: none;
+    font-family: inherit; resize: vertical;
+    min-height: 42px; box-sizing: border-box; width: 100%;
+  }
+  .card-field textarea:focus { border-color: var(--accent); }
+  .card-field textarea::placeholder { color: var(--muted); }
+  .card-field.back textarea { background: rgba(56,189,248,.05); }
   .anki-foot {
     padding: 14px 20px; border-top: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -357,7 +365,6 @@
     </div>
     <button class="ghost small" id="closeAnki">Schließen</button>
   </div>
-  <div class="card-row-header"><span>Vorderseite</span><span>Rückseite</span><span></span></div>
   <div class="anki-cards" id="ankiCards"></div>
   <div class="anki-foot">
     <div class="left">
@@ -819,12 +826,9 @@ function renderLudolph() {
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
 
 // Sync the front/back textareas of a card row to a shared height (the larger of the two)
-function syncRowHeights(frontTA, backTA) {
-  frontTA.style.height = "auto";
-  backTA.style.height = "auto";
-  const h = Math.max(frontTA.scrollHeight, backTA.scrollHeight) + 2;
-  frontTA.style.height = h + "px";
-  backTA.style.height = h + "px";
+function autoGrow(ta) {
+  ta.style.height = "auto";
+  ta.style.height = ta.scrollHeight + 2 + "px";
 }
 
 // ============================================================
@@ -853,22 +857,34 @@ function renderAnkiCards() {
     container.innerHTML = `<div class="empty">Noch keine Karten. Klick auf "+ Karte".</div>`;
   } else {
     cards.forEach((card, ci) => {
-      const row = document.createElement("div");
-      row.className = "card-row";
-      row.innerHTML = `
-        <textarea placeholder="Vorderseite" rows="1">${escapeText(card.front || "")}</textarea>
-        <textarea placeholder="Rückseite" rows="1">${escapeText(card.back || "")}</textarea>
-        <button class="rm" title="Karte löschen">×</button>
+      const item = document.createElement("div");
+      item.className = "card-item";
+      item.innerHTML = `
+        <div class="card-bar">
+          <span class="num">Karte ${ci + 1}</span>
+          <button class="rm" title="Karte löschen">×</button>
+        </div>
+        <div class="card-field front">
+          <label>Vorderseite</label>
+          <textarea placeholder="Frage / Vorderseite" rows="2">${escapeText(card.front || "")}</textarea>
+        </div>
+        <div class="card-field back">
+          <label>Rückseite</label>
+          <textarea placeholder="Antwort / Rückseite" rows="3">${escapeText(card.back || "")}</textarea>
+        </div>
       `;
-      const [frontTA, backTA] = row.querySelectorAll("textarea");
-      syncRowHeights(frontTA, backTA);
-      frontTA.addEventListener("input", e => { card.front = e.target.value; syncRowHeights(frontTA, backTA); markDirty(); });
-      backTA.addEventListener("input", e => { card.back = e.target.value; syncRowHeights(frontTA, backTA); markDirty(); });
-      row.querySelector(".rm").addEventListener("click", () => {
+      const frontTA = item.querySelector(".front textarea");
+      const backTA = item.querySelector(".back textarea");
+      frontTA.addEventListener("input", e => { card.front = e.target.value; autoGrow(frontTA); markDirty(); });
+      backTA.addEventListener("input", e => { card.back = e.target.value; autoGrow(backTA); markDirty(); });
+      item.querySelector(".rm").addEventListener("click", () => {
         cards.splice(ci, 1);
         markDirty(); renderAnkiCards(); render();
       });
-      container.appendChild(row);
+      container.appendChild(item);
+      // Size to content after insertion into DOM (scrollHeight needs layout).
+      autoGrow(frontTA);
+      autoGrow(backTA);
     });
   }
   $("#ankiCount").textContent = `${cards.length} Karte${cards.length !== 1 ? "n" : ""}`;
@@ -880,8 +896,8 @@ $("#ankiAddCard").addEventListener("click", () => {
   ankiTopic.cards.push({ id: uid(), front: "", back: "" });
   markDirty(); renderAnkiCards(); render();
   // Focus the new front textarea
-  const rows = $("#ankiCards").querySelectorAll(".card-row");
-  if (rows.length) rows[rows.length - 1].querySelector("textarea").focus();
+  const items = $("#ankiCards").querySelectorAll(".card-item");
+  if (items.length) items[items.length - 1].querySelector("textarea").focus();
 });
 
 $("#ankiExport").addEventListener("click", () => {
