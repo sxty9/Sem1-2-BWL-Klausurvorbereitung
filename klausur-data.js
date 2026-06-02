@@ -4,7 +4,7 @@ window.KLAUSUR_DATA = {
     {
       "title": "SWOT-Analyse",
       "location": "Satz 1, S. 86",
-      "notes": "sdsdsdsdsds",
+      "notes": "sdsdsdsdsdsfdfdfd",
       "attachments": [
         {
           "id": "4eols6ix4jav",
@@ -17,7 +17,7 @@ window.KLAUSUR_DATA = {
       "cards": [
         {
           "id": "6pgplr4jsymk",
-          "front": "dd",
+          "front": "ddsdsdsdssdsdsdsdsds",
           "back": "dd"
         },
         {
@@ -432,6 +432,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T16:36:49.970Z"
+    "lastSaved": "2026-06-02T16:37:51.304Z"
   }
 };
