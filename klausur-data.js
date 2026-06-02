@@ -165,7 +165,7 @@ window.KLAUSUR_DATA = {
   "ludolph": [
     {
       "id": "u1vrzj8y8h49",
-      "text": "Der Graben war im durchschnitt nur ein Meter tief und trotzdem ist die Kuh ersoffen\n"
+      "text": "Im Durchschnitt war der graben nur ein Meter tief und trotzdem ist die Kuh ersoffen \n"
     },
     {
       "id": "wn02mkpdtq0t",
@@ -186,9 +186,13 @@ window.KLAUSUR_DATA = {
     {
       "id": "0l88j186d1sk",
       "text": "60%??? So viele sind wird doch garnicht !!"
+    },
+    {
+      "id": "08uu4pqddj93",
+      "text": ""
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:38:27.890Z"
+    "lastSaved": "2026-06-02T11:40:58.574Z"
   }
 };
