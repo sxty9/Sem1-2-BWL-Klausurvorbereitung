@@ -5,14 +5,28 @@ window.KLAUSUR_DATA = {
       "title": "A short Time Travel",
       "location": "Satz 1, S. 43",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "kge0058i52uv",
+          "name": "A_short_time_travel_-_überblick.m4a",
+          "path": "notes/A_short_time_travel_-_überblick.m4a",
+          "source": "repo"
+        }
+      ],
       "id": "u3cjti8e3rto"
     },
     {
       "title": "SWOT-Analyse",
       "location": "Satz 1, S. 86",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "4eols6ix4jav",
+          "name": "SWOT-Analyse erklärt.m4a",
+          "path": "notes/SWOT-Analyse erklärt.m4a",
+          "source": "repo"
+        }
+      ],
       "id": "imc4ee9j3rto"
     },
     {
@@ -40,14 +54,28 @@ window.KLAUSUR_DATA = {
       "title": "Unternehmensverbund",
       "location": "Satz 1, S. 159",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "a9kbjpio5dpw",
+          "name": "Anteilshaltung_in_Unternehmen.m4a",
+          "path": "notes/Anteilshaltung_in_Unternehmen.m4a",
+          "source": "repo"
+        }
+      ],
       "id": "4a9xz22h3rto"
     },
     {
       "title": "Due Diligence",
       "location": "Satz 1, S. 166",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "j6f7kp5d4dzd",
+          "name": "Due Diligence erklärt.m4a",
+          "path": "notes/Due Diligence erklärt.m4a",
+          "source": "repo"
+        }
+      ],
       "id": "wpo1gav23rto"
     },
     {
@@ -149,6 +177,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:26:21.641Z"
+    "lastSaved": "2026-06-02T11:32:39.232Z"
   }
 };
