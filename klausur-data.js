@@ -189,10 +189,14 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "08uu4pqddj93",
-      "text": ""
+      "text": "Viel schlimmer als eine Bank auszurauben ist es eine Bank zu gründen "
+    },
+    {
+      "id": "hnzdeio3h184",
+      "text": "Der Mehrwert ist der Wert, der mehr wert ist als der Wert wert groß ist"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:40:58.574Z"
+    "lastSaved": "2026-06-02T11:43:13.738Z"
   }
 };
