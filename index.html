@@ -104,11 +104,12 @@
   }
   .topic input.loc:focus { color: var(--text); border-color: var(--accent); }
   .topic textarea.notes {
-    width: 100%; min-height: 60px;
+    width: 100%; min-height: 60px; max-height: 500px;
     background: var(--panel-2); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
     padding: 8px 10px; font-size: 13px;
     font-family: inherit; resize: vertical; outline: none;
+    overflow: auto;
   }
   .topic textarea.notes:focus { border-color: var(--accent); }
   .attachments { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -179,8 +180,8 @@
     border: 1px dashed transparent;
     color: var(--text); font-size: 14px; font-family: inherit;
     padding: 6px 8px; border-radius: 6px;
-    resize: none; min-height: 36px; outline: none;
-    line-height: 1.45; overflow: hidden;
+    resize: vertical; min-height: 36px; max-height: 500px; outline: none;
+    line-height: 1.45; overflow: auto;
   }
   .spruch textarea:hover { border-color: var(--border); }
   .spruch textarea:focus { border-color: var(--accent); background: var(--panel-2); border-style: solid; }
@@ -521,7 +522,13 @@ function renderTopics() {
     `;
     el.querySelector("input.title").addEventListener("input", e => { t.title = e.target.value; markDirty(); });
     el.querySelector("input.loc").addEventListener("input",   e => { t.location = e.target.value; markDirty(); });
-    el.querySelector("textarea.notes").addEventListener("input", e => { t.notes = e.target.value; markDirty(); });
+    const notesEl = el.querySelector("textarea.notes");
+    if (t.notesHeight) notesEl.style.height = t.notesHeight;
+    notesEl.addEventListener("input", e => { t.notes = e.target.value; markDirty(); });
+    notesEl.addEventListener("pointerup", () => {
+      const h = notesEl.style.height;
+      if (h && h !== t.notesHeight) { t.notesHeight = h; markDirty(); }
+    });
     el.querySelector("[data-act='del']").addEventListener("click", () => {
       if (confirm(`Thema "${t.title}" wirklich löschen?`)) {
         t.attachments.forEach(a => pendingUploads.delete(a.id));
@@ -628,21 +635,28 @@ function openAttachMenu(anchor, topic) {
     });
   }
 
-  // Position fixed relative to the anchor button, escaping overflow:hidden panels
+  // Position fixed, tracking anchor on scroll
   document.body.appendChild(menu);
-  const rect = anchor.getBoundingClientRect();
-  const menuH = menu.offsetHeight;
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const top = spaceBelow >= menuH || spaceBelow >= 120
-    ? rect.bottom + 4
-    : rect.top - menuH - 4;
-  menu.style.top = Math.max(8, top) + "px";
-  menu.style.left = Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8) + "px";
+
+  function positionMenu() {
+    const rect = anchor.getBoundingClientRect();
+    const menuH = menu.offsetHeight;
+    const menuW = menu.offsetWidth;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = (spaceBelow >= menuH || spaceBelow >= 120)
+      ? rect.bottom + 4
+      : rect.top - menuH - 4;
+    menu.style.top  = Math.max(8, top) + "px";
+    menu.style.left = Math.min(rect.left, window.innerWidth - menuW - 8) + "px";
+  }
+  positionMenu();
+  window.addEventListener("scroll", positionMenu, { passive: true });
 
   setTimeout(() => {
     const close = e => {
       if (!menu.contains(e.target) && e.target !== anchor) {
         menu.remove();
+        window.removeEventListener("scroll", positionMenu);
         document.removeEventListener("click", close);
       }
     };
@@ -698,8 +712,13 @@ function renderLudolph() {
       <button class="rm" title="Entfernen">✕</button>
     `;
     const ta = el.querySelector("textarea");
-    autosize(ta);
+    if (s.height) ta.style.height = s.height;
+    else autosize(ta);
     ta.addEventListener("input", e => { s.text = e.target.value; autosize(ta); markDirty(); });
+    ta.addEventListener("pointerup", () => {
+      const h = ta.style.height;
+      if (h && h !== s.height) { s.height = h; markDirty(); }
+    });
     el.querySelector(".rm").addEventListener("click", () => {
       state.ludolph.splice(idx, 1);
       markDirty(); render();
