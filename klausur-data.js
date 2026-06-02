@@ -130,10 +130,18 @@ window.KLAUSUR_DATA = {
   "ludolph": [
     {
       "id": "u1vrzj8y8h49",
-      "text": "Der Graben ist drei Meter tief und trotzdem ist die Kuh ersoffen\n"
+      "text": "Der Graben war im durchschnitt nur ein Meter tief und trotzdem ist die Kuh ersoffen\n"
+    },
+    {
+      "id": "wn02mkpdtq0t",
+      "text": "Immer viel trinken, aber von Wasser ist nicht die Rede"
+    },
+    {
+      "id": "eml4ppjlu85h",
+      "text": "Die Hälfte der deutschen können keine Bruchrechnung, das sind schonmal 30 %"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:05:59.913Z"
+    "lastSaved": "2026-06-02T11:24:24.357Z"
   }
 };
