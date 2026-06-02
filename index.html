@@ -178,7 +178,8 @@
     background: var(--panel-2); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
     padding: 8px 10px; font-size: 13px; outline: none;
-    font-family: inherit; resize: vertical; min-height: 38px; max-height: 200px;
+    font-family: inherit; resize: vertical; min-height: 38px;
+    overflow-y: hidden; box-sizing: border-box;
   }
   .card-row input:focus, .card-row textarea:focus { border-color: var(--accent); }
   .card-row input::placeholder, .card-row textarea::placeholder { color: var(--muted); }
@@ -817,6 +818,15 @@ function renderLudolph() {
 }
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
 
+// Sync the front/back textareas of a card row to a shared height (the larger of the two)
+function syncRowHeights(frontTA, backTA) {
+  frontTA.style.height = "auto";
+  backTA.style.height = "auto";
+  const h = Math.max(frontTA.scrollHeight, backTA.scrollHeight) + 2;
+  frontTA.style.height = h + "px";
+  backTA.style.height = h + "px";
+}
+
 // ============================================================
 //  Anki cards dialog
 // ============================================================
@@ -828,8 +838,8 @@ function openAnkiDialog(topic) {
   if (!Array.isArray(topic.cards)) topic.cards = [];
   $("#ankiTitle").textContent = "Anki — " + (topic.title || "Unbenannt");
   $("#ankiSub").textContent = topic.location || "";
-  renderAnkiCards();
   $("#ankiDlg").showModal();
+  renderAnkiCards();
 }
 
 function renderAnkiCards() {
@@ -851,9 +861,9 @@ function renderAnkiCards() {
         <button class="rm" title="Karte löschen">×</button>
       `;
       const [frontTA, backTA] = row.querySelectorAll("textarea");
-      autosize(frontTA); autosize(backTA);
-      frontTA.addEventListener("input", e => { card.front = e.target.value; autosize(frontTA); markDirty(); });
-      backTA.addEventListener("input", e => { card.back = e.target.value; autosize(backTA); markDirty(); });
+      syncRowHeights(frontTA, backTA);
+      frontTA.addEventListener("input", e => { card.front = e.target.value; syncRowHeights(frontTA, backTA); markDirty(); });
+      backTA.addEventListener("input", e => { card.back = e.target.value; syncRowHeights(frontTA, backTA); markDirty(); });
       row.querySelector(".rm").addEventListener("click", () => {
         cards.splice(ci, 1);
         markDirty(); renderAnkiCards(); render();
