@@ -159,13 +159,15 @@ window.KLAUSUR_DATA = {
           "path": "notes/Unternehmenssteuern_Lernblatt.pdf",
           "source": "repo"
         }
-      ]
+      ],
+      "notesHeight": "102px"
     }
   ],
   "ludolph": [
     {
       "id": "u1vrzj8y8h49",
-      "text": "Im Durchschnitt war der graben nur ein Meter tief und trotzdem ist die Kuh ersoffen \n"
+      "text": "Im Durchschnitt war der graben nur ein Meter tief und trotzdem ist die Kuh ersoffen \n",
+      "height": "60px"
     },
     {
       "id": "wn02mkpdtq0t",
@@ -173,7 +175,8 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "eml4ppjlu85h",
-      "text": "Die Hälfte der deutschen können keine Bruchrechnung, das sind schonmal 30 %"
+      "text": "Die Hälfte der deutschen können keine Bruchrechnung, das sind schonmal 30 %",
+      "height": "58px"
     },
     {
       "id": "h5wft6cybnvw",
@@ -185,18 +188,21 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "0l88j186d1sk",
-      "text": "60%??? So viele sind wird doch garnicht !!"
+      "text": "60%??? So viele sind wird doch garnicht !!",
+      "height": "32px"
     },
     {
       "id": "08uu4pqddj93",
-      "text": "Viel schlimmer als eine Bank auszurauben ist es eine Bank zu gründen "
+      "text": "Viel schlimmer als eine Bank auszurauben ist es eine Bank zu gründen ",
+      "height": "61px"
     },
     {
       "id": "hnzdeio3h184",
-      "text": "Der Mehrwert ist der Wert, der mehr wert ist als der Wert wert groß ist"
+      "text": "Der Mehrwert ist der Wert, der mehr wert ist als der Wert wert groß ist",
+      "height": "63px"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:43:13.738Z"
+    "lastSaved": "2026-06-02T11:44:54.258Z"
   }
 };
