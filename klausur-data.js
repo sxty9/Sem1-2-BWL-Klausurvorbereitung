@@ -97,7 +97,14 @@ window.KLAUSUR_DATA = {
       "title": "Unternehmenssteuern",
       "location": "aus der Vorlesung",
       "notes": "",
-      "attachments": []
+      "attachments": [
+        {
+          "id": "crlg1nxysooa",
+          "name": "Unternehmenssteuern_Lernblatt.html",
+          "path": "notes/Unternehmenssteuern_Lernblatt.html",
+          "source": "repo"
+        }
+      ]
     }
   ],
   "ludolph": [
@@ -107,6 +114,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T10:18:13.959Z"
+    "lastSaved": "2026-06-02T10:26:24.555Z"
   }
 };
