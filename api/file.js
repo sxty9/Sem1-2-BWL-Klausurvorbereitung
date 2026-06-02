@@ -15,7 +15,15 @@ const MIME = {
   json: "application/json",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  m4a: "audio/mp4",
+  mp3: "audio/mpeg",
+  mp4: "video/mp4",
+  wav: "audio/wav",
+  ogg: "audio/ogg",
+  webm: "video/webm",
+  mov: "video/quicktime",
+  zip: "application/zip"
 };
 
 module.exports = async (req, res) => {

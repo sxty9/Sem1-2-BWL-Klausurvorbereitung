@@ -383,21 +383,12 @@ async function loadRepoFiles() {
   }
 }
 
-async function fileToBase64(file) {
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let bin = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-  return btoa(bin);
-}
-
 async function uploadBlob(path, file) {
-  const base64 = await fileToBase64(file);
-  const r = await api("/api/upload", {
+  // Send raw binary — bypasses Vercel's 4.5MB JSON body limit
+  const r = await api(`/api/upload?path=${encodeURIComponent(path)}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, base64 })
+    headers: { "Content-Type": "application/octet-stream" },
+    body: file
   });
   return (await r.json()).sha;
 }
@@ -642,8 +633,9 @@ function uploadLocalFile(topic) {
   picker.onchange = () => {
     const file = picker.files[0];
     if (!file) return;
-    if (file.size > 4 * 1024 * 1024) {
-      toast("Datei > 4 MB — wird vermutlich nicht hochgeladen werden können", "warn");
+    if (file.size > 50 * 1024 * 1024) {
+      toast("Datei > 50 MB — zu groß für den Upload", "err");
+      return;
     }
     const id = uid();
     topic.attachments.push({
