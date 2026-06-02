@@ -4,7 +4,7 @@
 // Response: binary .apkg file
 
 const crypto = require("crypto");
-const initSqlJs = require("sql.js");
+const initSqlJs = require("sql.js/dist/sql-asm.js");
 const JSZip = require("jszip");
 const gh = require("./_github.js");
 
