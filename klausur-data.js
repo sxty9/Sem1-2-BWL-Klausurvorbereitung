@@ -174,9 +174,13 @@ window.KLAUSUR_DATA = {
     {
       "id": "eml4ppjlu85h",
       "text": "Die Hälfte der deutschen können keine Bruchrechnung, das sind schonmal 30 %"
+    },
+    {
+      "id": "h5wft6cybnvw",
+      "text": "Die Basis ist die Grundlage aller Fundamente"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:32:39.232Z"
+    "lastSaved": "2026-06-02T11:37:18.846Z"
   }
 };
