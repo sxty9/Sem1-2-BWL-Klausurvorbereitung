@@ -418,13 +418,9 @@ window.KLAUSUR_DATA = {
       "id": "dgd6x4ef710x",
       "text": "Management ist ein totes Pferd.",
       "height": "2px"
-    },
-    {
-      "id": "pqgk48ngsc4g",
-      "text": "sdsdsdsdsd"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T17:26:01.632Z"
+    "lastSaved": "2026-06-02T17:26:20.044Z"
   }
 };
