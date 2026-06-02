@@ -609,6 +609,7 @@ function loadAnkiLocal() {
       // Old exports stored per-card snapshots; if a topic hash is missing we
       // mark the topic as "exported but hash unknown" (empty string) so the
       // student is prompted once to re-export and capture a real hash.
+      let didMigrate = false;
       if (parsed.cardSnapshots && typeof parsed.cardSnapshots === "object") {
         const legacyTopics = new Set();
         for (const s of Object.values(parsed.cardSnapshots)) {
@@ -617,19 +618,27 @@ function loadAnkiLocal() {
         for (const tid of legacyTopics) {
           if (store.topicExportHashes[tid] === undefined) {
             store.topicExportHashes[tid] = ""; // unknown → will trigger re-export prompt
+            didMigrate = true;
           }
         }
+      }
+      // Persist the migration so we don't re-do it (and drop the legacy
+      // cardSnapshots payload) on every page load.
+      if (didMigrate || parsed.cardSnapshots) {
+        try { localStorage.setItem(ANKI_LOCAL_PREFIX + id, JSON.stringify(store)); } catch (e) {}
       }
     }
   } catch (e) {}
   return store;
 }
 
-// Stable hash of a topic's complete card-set: sorted by card id so reordering
-// doesn't trigger false positives. Any add/edit/delete changes this hash.
+// Stable hash of a topic's content-carrying card-set: sorted by card id so
+// reordering doesn't trigger false positives. Empty placeholder cards (no
+// front and no back) are skipped so adding a blank "+ Karte" row doesn't
+// flag the topic as drifted before the student has typed anything.
 function computeTopicHash(cards) {
   return (cards || [])
-    .filter(c => c && c.id)
+    .filter(c => c && c.id && (c.front || c.back))
     .slice()
     .sort((a, b) => String(a.id).localeCompare(String(b.id)))
     .map(c => (c.id || "") + ":" + (c.front || "") + "\x1f" + (c.back || ""))
@@ -796,6 +805,10 @@ function markDirty() {
   dirty = true;
   updateSaveButton();
   try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
+  // Recompute sync state so the top banner reacts immediately to local edits
+  // (add/edit/delete card, edit notes, etc.) on topics the student already
+  // exported. Cheap: one hash per topic, no DOM-heavy work.
+  refreshSync();
 }
 
 function updateSaveButton() {
