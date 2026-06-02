@@ -96,7 +96,7 @@ window.KLAUSUR_DATA = {
       "id": "zoxu21n194er",
       "title": "Unternehmenssteuern",
       "location": "aus der Vorlesung",
-      "notes": "",
+      "notes": "Ertragsteuern = KSt + SolZ + GewSt\nKSt   = Gewinn × 15 %\nSolZ  = KSt × 5,5 %\n      = Gewinn × 0,825 %\nGewSt = Gewerbeertrag × 3,5 % × Hebesatz",
       "attachments": [
         {
           "id": "crlg1nxysooa",
@@ -114,6 +114,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T10:26:24.555Z"
+    "lastSaved": "2026-06-02T10:29:22.477Z"
   }
 };
