@@ -585,53 +585,66 @@ function setStudentName(name) {
 }
 // Load this student's local Anki store. Falls back to an empty store.
 // Schema:
-//   exported:        ankiIds this student exported at least once
-//   deletedCards:    tombstones for cards that vanished while exported
-//   cardSnapshots:   { ankiId → { hash, topicId, topicTitle, front, back } }
-//                    Captures the content of every exported card at the moment
-//                    of export. Used to detect "topic needs re-export" when
-//                    server-side content drifts away from what's in Anki.
-//   lastSyncHash:    fingerprint of the last sync-state we showed the user as
-//                    a popup. Prevents re-popping the same popup over and over.
+//   exported:           ankiIds this student exported at least once
+//                       (used for tombstone gating — did this card reach Anki?)
+//   deletedCards:       tombstones for cards that vanished while exported
+//   topicExportHashes:  { topicId → hash } — hash of the full topic card-set
+//                       at the moment the student last exported that topic.
+//                       server hash ≠ stored hash → re-export needed.
+//   lastSyncHash:       fingerprint of the last sync-state shown as popup.
+//                       Prevents repeat popups for the same state.
 function loadAnkiLocal() {
   const id = getStudentId();
-  let store = { exported: [], deletedCards: [], cardSnapshots: {}, lastSyncHash: "" };
+  let store = { exported: [], deletedCards: [], topicExportHashes: {}, lastSyncHash: "" };
   try {
     const raw = localStorage.getItem(ANKI_LOCAL_PREFIX + id);
     if (raw) {
       const parsed = JSON.parse(raw);
-      store.exported = Array.isArray(parsed.exported) ? parsed.exported : [];
-      store.deletedCards = Array.isArray(parsed.deletedCards) ? parsed.deletedCards : [];
-      store.cardSnapshots = (parsed.cardSnapshots && typeof parsed.cardSnapshots === "object") ? parsed.cardSnapshots : {};
-      store.lastSyncHash = typeof parsed.lastSyncHash === "string" ? parsed.lastSyncHash : "";
+      store.exported          = Array.isArray(parsed.exported) ? parsed.exported : [];
+      store.deletedCards      = Array.isArray(parsed.deletedCards) ? parsed.deletedCards : [];
+      store.topicExportHashes = (parsed.topicExportHashes && typeof parsed.topicExportHashes === "object")
+                                  ? parsed.topicExportHashes : {};
+      store.lastSyncHash      = typeof parsed.lastSyncHash === "string" ? parsed.lastSyncHash : "";
+      // Migrate legacy cardSnapshots into topicExportHashes on first load.
+      // Old exports stored per-card snapshots; if a topic hash is missing we
+      // mark the topic as "exported but hash unknown" (empty string) so the
+      // student is prompted once to re-export and capture a real hash.
+      if (parsed.cardSnapshots && typeof parsed.cardSnapshots === "object") {
+        const legacyTopics = new Set();
+        for (const s of Object.values(parsed.cardSnapshots)) {
+          if (s && s.topicId) legacyTopics.add(s.topicId);
+        }
+        for (const tid of legacyTopics) {
+          if (store.topicExportHashes[tid] === undefined) {
+            store.topicExportHashes[tid] = ""; // unknown → will trigger re-export prompt
+          }
+        }
+      }
     }
   } catch (e) {}
   return store;
 }
 
-// Stable per-card content fingerprint. Two cards have the same hash iff their
-// front+back text is identical. Used to detect content edits since export.
-function cardContentHash(front, back) {
-  return (front || "") + "\x1f" + (back || "");
+// Stable hash of a topic's complete card-set: sorted by card id so reordering
+// doesn't trigger false positives. Any add/edit/delete changes this hash.
+function computeTopicHash(cards) {
+  return (cards || [])
+    .filter(c => c && c.id)
+    .slice()
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+    .map(c => (c.id || "") + ":" + (c.front || "") + "\x1f" + (c.back || ""))
+    .join("|");
 }
 
-// Persist a snapshot of the cards a student just exported, so future loads can
-// detect drift. Called from every export pathway except the cleanup-.apkg (which
-// re-emits already-deleted cards — those aren't a "real" export).
+// Persist a topic-level hash at export time, so future pulls can detect drift.
+// Also updates the per-card exported[] set (needed for tombstone gating).
 function snapshotExport(topic, cards) {
   if (!topic || !topic.id) return;
   const store = loadAnkiLocal();
-  if (!store.cardSnapshots) store.cardSnapshots = {};
-  for (const c of (cards || [])) {
-    if (!c || !c.id) continue;
-    store.cardSnapshots[c.id] = {
-      hash: cardContentHash(c.front, c.back),
-      topicId: topic.id,
-      topicTitle: topic.title || "Unbenannt",
-      front: c.front || "",
-      back: c.back || ""
-    };
-  }
+  // Store the hash of the FULL topic (not just the exported subset), so that
+  // a partially-filtered export (e.g. only cards with content) still produces
+  // a hash that reflects new cards added after this export.
+  store.topicExportHashes[topic.id] = computeTopicHash(topic.cards);
   saveAnkiLocal(store);
 }
 function saveAnkiLocal(store) {
@@ -1304,72 +1317,30 @@ function renderAnkiCleanup() {
 //  Sync state: re-export needs + tombstones, surfaced via banner + popup
 // ============================================================
 
-// Compute everything that's out of sync for the current student between Anki
-// and the in-memory state. Returns:
-//   { topicsNeedingExport: [...], tombstones: [...], hash: "fingerprint" }
+// Compute everything that's out of sync for the current student.
+// Returns: { topicsNeedingExport: [{topicId, topicTitle}], tombstones: [...], hash }
+//
+// Principle: server topic changed → anyone who ever exported that topic is notified.
+// Detection is a single hash comparison per topic: stored export-hash vs current hash.
+// No per-card diffing needed.
 function computePendingChanges() {
   const store = loadAnkiLocal();
-  const snapshots = store.cardSnapshots || {};
-  const exportedSet = new Set(store.exported || []);
+  const hashes = store.topicExportHashes || {};
 
-  // Group snapshots by topicId so we know which topics the student has touched.
-  const exportedTopicIds = new Set();
-  for (const ankiId of Object.keys(snapshots)) {
-    const s = snapshots[ankiId];
-    if (s && s.topicId) exportedTopicIds.add(s.topicId);
-  }
-  // Some students may have exported before snapshots existed → fall back to
-  // deriving the topic from current state for any ankiId in `exported` whose
-  // snapshot is missing.
-  for (const t of (state.topics || [])) {
-    for (const c of (t.cards || [])) {
-      if (exportedSet.has(ankiCardKey(t, c))) exportedTopicIds.add(t.id);
-    }
-  }
-
-  // Per-topic diff for any topic the student has ever exported anything from.
   const topicsNeedingExport = [];
   for (const t of (state.topics || [])) {
-    if (!exportedTopicIds.has(t.id)) continue;
-    const added = [];   // new cards (no snapshot yet)
-    const changed = []; // existing snapshot, content differs
-    for (const c of (t.cards || [])) {
-      if (!c || !(c.front || c.back)) continue;
-      const ankiId = ankiCardKey(t, c);
-      const snap = snapshots[ankiId];
-      const curHash = cardContentHash(c.front, c.back);
-      if (!snap) {
-        // No snapshot for this card yet. Only count as "added" if the student
-        // has exported anything from this topic — otherwise this is just the
-        // initial population and not relevant for re-export.
-        if (exportedTopicIds.has(t.id)) added.push({ ankiId, front: c.front || "" });
-      } else if (snap.hash !== curHash) {
-        changed.push({ ankiId, front: c.front || "" });
-      }
-    }
-    // Cards that existed in our last export of this topic but are gone now.
-    const removed = [];
-    const curAnkiIds = new Set((t.cards || []).map(c => ankiCardKey(t, c)));
-    for (const [ankiId, s] of Object.entries(snapshots)) {
-      if (s && s.topicId === t.id && !curAnkiIds.has(ankiId)) {
-        removed.push({ ankiId, front: s.front || "" });
-      }
-    }
-    if (added.length || changed.length) {
-      topicsNeedingExport.push({
-        topicId: t.id,
-        topicTitle: t.title || "Unbenannt",
-        added, changed, removed
-      });
+    const storedHash = hashes[t.id];
+    if (storedHash === undefined) continue; // never exported this topic → skip
+    const currentHash = computeTopicHash(t.cards);
+    if (storedHash !== currentHash) {
+      topicsNeedingExport.push({ topicId: t.id, topicTitle: t.title || "Unbenannt" });
     }
   }
 
-  // Tombstones are surfaced as-is — they need manual Anki cleanup.
   const tombstones = (store.deletedCards || []).slice();
 
-  // Hash so we can detect "is this a NEW state we haven't notified about yet".
   const sig = JSON.stringify({
-    t: topicsNeedingExport.map(x => ({ id: x.topicId, a: x.added.length, c: x.changed.length, r: x.removed.length })),
+    t: topicsNeedingExport.map(x => x.topicId).sort(),
     d: tombstones.map(d => d.ankiId).sort()
   });
   return { topicsNeedingExport, tombstones, hash: sig };
@@ -1447,15 +1418,8 @@ function openSyncDlg() {
     for (const t of pending.topicsNeedingExport) {
       const row = document.createElement("div");
       row.className = "sync-topic";
-      const counts = [];
-      if (t.added.length)   counts.push(`<span class="added">+${t.added.length} neu</span>`);
-      if (t.changed.length) counts.push(`<span class="changed">~${t.changed.length} geändert</span>`);
-      if (t.removed.length) counts.push(`<span class="removed">-${t.removed.length} entfernt</span>`);
       row.innerHTML = `
-        <div>
-          <div class="st-name">${escapeText(t.topicTitle)}</div>
-          <div class="st-counts">${counts.join(" · ")}</div>
-        </div>
+        <div class="st-name">${escapeText(t.topicTitle)}</div>
         <button class="small primary" data-topic-id="${escapeAttr(t.topicId)}">Re-Exportieren</button>
       `;
       row.querySelector("button").addEventListener("click", async () => {
