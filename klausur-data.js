@@ -19,6 +19,11 @@ window.KLAUSUR_DATA = {
           "id": "6pgplr4jsymk",
           "front": "dd",
           "back": "dd"
+        },
+        {
+          "id": "a5hcbx1b0c31",
+          "front": "dsds",
+          "back": "sdsds"
         }
       ]
     },
@@ -427,6 +432,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T16:30:30.935Z"
+    "lastSaved": "2026-06-02T16:36:20.841Z"
   }
 };
