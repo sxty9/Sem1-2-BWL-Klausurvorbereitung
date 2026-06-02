@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BWL Klausurvorbereitung</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #273449;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --radius: 10px;
+    --shadow: 0 6px 24px rgba(0,0,0,.25);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--accent); }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(15,23,42,.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap;
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: .2px; }
+  header h1 .accent { color: var(--accent); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .status-pill { font-size: 11px; color: var(--muted); padding: 2px 8px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; }
+  .status-pill.ok { color: var(--ok); border-color: #1f4732; }
+  .status-pill.err { color: var(--danger); border-color: #553030; }
+  button {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; font-size: 13px; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+  button:hover { background: #334155; border-color: #475569; }
+  button:active { transform: translateY(1px); }
+  button.primary { background: var(--accent); color: #0f172a; border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { background: #7dd3fc; }
+  button.primary:disabled { background: var(--ok); color: #0f172a; border-color: var(--ok); cursor: default; opacity: .9; }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--danger); border-color: #553030; }
+  button.danger:hover { background: #2a1717; }
+  button.small { padding: 4px 8px; font-size: 12px; }
+  .save-btn { min-width: 150px; }
+  .save-btn .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: #0f172a; vertical-align: middle; }
+  main {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 22px;
+    padding: 22px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  section.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  section.panel > .head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  section.panel > .head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  section.panel > .head .sub { color: var(--muted); font-size: 12px; }
+
+  .topics { display: flex; flex-direction: column; }
+  .topic {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .topic:last-child { border-bottom: none; }
+  .topic .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .topic .drag { cursor: grab; user-select: none; color: var(--muted); padding: 4px 6px; border-radius: 6px; }
+  .topic .drag:hover { background: var(--panel-2); color: var(--text); }
+  .topic input.title {
+    flex: 1; min-width: 200px;
+    background: transparent; color: var(--text);
+    border: none; border-bottom: 1px dashed transparent;
+    font-size: 15px; font-weight: 600;
+    padding: 6px 4px; outline: none;
+  }
+  .topic input.title:hover, .topic input.title:focus { border-bottom-color: var(--border); }
+  .topic input.loc {
+    background: var(--panel-2); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 8px; font-size: 12px;
+    width: 180px; outline: none;
+  }
+  .topic input.loc:focus { color: var(--text); border-color: var(--accent); }
+  .topic textarea.notes {
+    width: 100%; min-height: 60px;
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; font-size: 13px;
+    font-family: inherit; resize: vertical; outline: none;
+  }
+  .topic textarea.notes:focus { border-color: var(--accent); }
+  .attachments { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .attachment {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 4px 4px 10px;
+    font-size: 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+    max-width: 100%;
+  }
+  .attachment.pending { border-color: var(--warn); }
+  .attachment .name {
+    color: var(--accent); text-decoration: none; cursor: pointer;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px;
+  }
+  .attachment .name:hover { text-decoration: underline; }
+  .attachment .src {
+    color: var(--muted); font-size: 10px; text-transform: uppercase;
+    background: rgba(255,255,255,.04); padding: 1px 5px; border-radius: 4px;
+  }
+  .attachment.pending .src { color: var(--warn); background: rgba(251,191,36,.1); }
+  .attachment .rm {
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 6px;
+  }
+  .attachment .rm:hover { color: var(--danger); }
+  .attach-menu { position: relative; display: inline-block; }
+  .attach-menu .menu {
+    position: absolute; top: 100%; left: 0; margin-top: 4px;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow);
+    min-width: 260px; max-width: 380px; max-height: 320px; overflow: auto;
+    z-index: 100; padding: 4px;
+  }
+  .attach-menu .menu button {
+    width: 100%; text-align: left; border: none; background: transparent;
+    padding: 7px 10px; border-radius: 6px; font-size: 13px;
+  }
+  .attach-menu .menu button:hover { background: var(--border); }
+  .attach-menu .menu .label { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .5px; }
+  .topic .actions { margin-left: auto; display: flex; gap: 6px; }
+
+  .add-row {
+    padding: 14px 18px;
+    display: flex; gap: 8px; border-top: 1px solid var(--border);
+    background: rgba(255,255,255,.02);
+  }
+  .add-row input {
+    flex: 1; background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; font-size: 13px; outline: none;
+  }
+  .add-row input:focus { border-color: var(--accent); }
+
+  .ludolph { display: flex; flex-direction: column; }
+  .spruch {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .spruch:last-child { border-bottom: none; }
+  .spruch .num { color: var(--muted); font-size: 12px; min-width: 22px; margin-top: 7px; }
+  .spruch textarea {
+    flex: 1;
+    background: transparent;
+    border: 1px dashed transparent;
+    color: var(--text); font-size: 14px; font-family: inherit;
+    padding: 6px 8px; border-radius: 6px;
+    resize: vertical; min-height: 36px; outline: none;
+    line-height: 1.45;
+  }
+  .spruch textarea:hover { border-color: var(--border); }
+  .spruch textarea:focus { border-color: var(--accent); background: var(--panel-2); border-style: solid; }
+  .spruch .rm {
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; padding: 4px 6px; font-size: 16px;
+  }
+  .spruch .rm:hover { color: var(--danger); }
+
+  .empty { padding: 30px; text-align: center; color: var(--muted); font-style: italic; font-size: 13px; }
+  .hint { font-size: 11px; color: var(--muted); padding: 6px 18px 14px; }
+
+  dialog {
+    background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    max-width: 520px; width: 92%;
+    padding: 22px;
+  }
+  dialog::backdrop { background: rgba(0,0,0,.55); backdrop-filter: blur(2px); }
+  dialog h3 { margin: 0 0 10px; }
+  dialog p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  dialog ul { padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+  dialog code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 4px; font-size: 12px; color: var(--text); }
+  dialog .dlg-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--panel-2); border: 1px solid var(--border);
+    padding: 10px 16px; border-radius: 8px; font-size: 13px;
+    box-shadow: var(--shadow);
+    opacity: 0; transition: opacity .25s, transform .25s;
+    z-index: 1000; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .toast.err { border-color: var(--danger); color: var(--danger); }
+  .toast.ok { border-color: var(--ok); color: var(--ok); }
+  .toast.warn { border-color: var(--warn); color: var(--warn); }
+
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; backdrop-filter: blur(2px);
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-overlay .box {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 28px;
+    font-size: 14px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BWL Klausurvorbereitung <span class="accent">·</span> Henry</h1>
+  <div class="toolbar">
+    <span class="status-pill" id="statusPill">…</span>
+    <button class="ghost small" id="btnReload" title="Neu laden">↻</button>
+    <button class="primary save-btn" id="btnSave"><span class="dot"></span><span id="saveLabel">Gespeichert</span></button>
+    <button class="ghost" id="btnHelp" title="Hilfe">?</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="head">
+      <div>
+        <h2>Klausurrelevante Themen</h2>
+        <div class="sub">Bearbeiten, dann oben rechts speichern.</div>
+      </div>
+    </div>
+    <div class="topics" id="topics"></div>
+    <div class="add-row">
+      <input id="newTopicInput" type="text" placeholder="Neues Thema…  (Enter zum Hinzufügen)">
+      <button class="primary" id="btnAddTopic">+ Thema</button>
+    </div>
+    <div class="hint">Lokal hochgeladene Dateien werden beim Speichern automatisch ins Repo gepusht (max ~4 MB pro Datei).</div>
+  </section>
+
+  <section class="panel">
+    <div class="head">
+      <div>
+        <h2>Ludolph Sprüche</h2>
+        <div class="sub">Sammelstelle.</div>
+      </div>
+      <button class="primary small" id="btnAddSpruch">+ Spruch</button>
+    </div>
+    <div class="ludolph" id="ludolph"></div>
+  </section>
+</main>
+
+<dialog id="helpDlg">
+  <h3>So funktioniert's</h3>
+  <ul>
+    <li>Seite öffnen → aktuelle Daten werden automatisch geladen.</li>
+    <li>Bearbeiten — der Speichern-Button oben rechts wird aktiv.</li>
+    <li><strong>💾 Speichern</strong> klicken → Änderungen landen direkt im Git-Repo. Fertig.</li>
+    <li><strong>↻</strong> = manuell neu laden, falls jemand parallel gespeichert hat.</li>
+  </ul>
+  <p>Wenn jemand zwischen Deinem Laden und Speichern committed hat, schlägt der Save fehl mit Hinweis. Dann ↻ klicken und nochmal speichern.</p>
+  <p><strong>Tastatur:</strong> ⌘/Ctrl+S speichert.</p>
+  <div class="dlg-actions">
+    <button class="primary" id="closeHelp">OK</button>
+  </div>
+</dialog>
+
+<input type="file" id="filePicker" style="display:none">
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loadingOverlay"><div class="box" id="loadingText">Lade…</div></div>
+
+<script>
+"use strict";
+
+const LOCAL_CACHE_KEY = "bwl-klausur-cache";
+const NOTES_DIR = "notes";
+
+let state = { topics: [], ludolph: [] };
+let baseSha = null;
+let dirty = false;
+let pendingUploads = new Map(); // attachmentId -> File
+let repoFiles = [];
+
+// ============================================================
+//  DOM helpers
+// ============================================================
+
+const $ = sel => document.querySelector(sel);
+function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+function escapeText(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function escapeAttr(s) { return escapeText(s).replace(/"/g, "&quot;"); }
+
+let toastTimer = null;
+function toast(msg, kind) {
+  const el = $("#toast");
+  el.className = "toast show " + (kind || "");
+  el.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = "toast " + (kind || ""); }, 3000);
+}
+
+function showLoading(text) {
+  $("#loadingText").textContent = text || "Lade…";
+  $("#loadingOverlay").classList.add("show");
+}
+function hideLoading() { $("#loadingOverlay").classList.remove("show"); }
+
+function setStatus(kind, text) {
+  const el = $("#statusPill");
+  el.className = "status-pill " + (kind || "");
+  el.textContent = text;
+}
+
+function ensureIds() {
+  state.topics.forEach(t => {
+    if (!t.id) t.id = uid();
+    if (!Array.isArray(t.attachments)) t.attachments = [];
+    t.attachments.forEach(a => { if (!a.id) a.id = uid(); });
+  });
+  state.ludolph.forEach(s => { if (!s.id) s.id = uid(); });
+}
+
+function markDirty() {
+  dirty = true;
+  updateSaveButton();
+  try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
+}
+
+function updateSaveButton() {
+  const btn = $("#btnSave");
+  const label = $("#saveLabel");
+  const dot = btn.querySelector(".dot");
+  if (dirty) {
+    btn.disabled = false;
+    label.textContent = "Speichern";
+    dot.style.background = "#0f172a";
+  } else {
+    btn.disabled = true;
+    label.textContent = "✓ Gespeichert";
+    dot.style.background = "transparent";
+  }
+}
+
+// ============================================================
+//  Backend calls
+// ============================================================
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`;
+    try { const j = await res.json(); if (j.error) msg = j.error; } catch (e) {}
+    const err = new Error(msg); err.status = res.status;
+    throw err;
+  }
+  return res;
+}
+
+async function loadFromServer() {
+  const r = await api("/api/data");
+  const json = await r.json();
+  state.topics = Array.isArray(json.state?.topics) ? json.state.topics : [];
+  state.ludolph = Array.isArray(json.state?.ludolph) ? json.state.ludolph : [];
+  ensureIds();
+  baseSha = json.sha || null;
+  try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
+}
+
+async function loadRepoFiles() {
+  try {
+    const r = await api("/api/files");
+    const json = await r.json();
+    repoFiles = (json.files || []).map(p => ({ path: p, name: p.split("/").pop() }));
+  } catch (e) {
+    console.warn("loadRepoFiles", e);
+    repoFiles = [];
+  }
+}
+
+async function fileToBase64(file) {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return btoa(bin);
+}
+
+async function uploadBlob(path, file) {
+  const base64 = await fileToBase64(file);
+  const r = await api("/api/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, base64 })
+  });
+  return (await r.json()).sha;
+}
+
+// ============================================================
+//  Save flow
+// ============================================================
+
+async function save() {
+  if (!dirty) return;
+  const btn = $("#btnSave");
+  const label = $("#saveLabel");
+  btn.disabled = true;
+  label.textContent = "Speichere…";
+
+  try {
+    // Upload pending files first → collect SHAs
+    const fileShas = [];
+    let i = 0;
+    for (const [attId, file] of pendingUploads) {
+      i++;
+      label.textContent = `Lade ${i}/${pendingUploads.size}…`;
+      // Find attachment + resolve collision
+      let att = null;
+      for (const t of state.topics) {
+        const a = t.attachments.find(x => x.id === attId);
+        if (a) { att = a; break; }
+      }
+      if (!att) continue;
+      let path = att.path;
+      while (repoFiles.some(rf => rf.path === path)) {
+        const dot = path.lastIndexOf(".");
+        const slash = path.lastIndexOf("/");
+        const stem = dot > slash ? path.slice(0, dot) : path;
+        const ext = dot > slash ? path.slice(dot) : "";
+        path = `${stem}-${Date.now().toString(36)}${ext}`;
+      }
+      const sha = await uploadBlob(path, file);
+      fileShas.push({ path, sha });
+      att.name = path.split("/").pop();
+      att.path = path;
+      att.source = "repo";
+    }
+
+    label.textContent = "Commite…";
+    const r = await api("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state, expectedSha: baseSha, fileShas })
+    });
+    const json = await r.json();
+    baseSha = json.sha;
+    pendingUploads.clear();
+    dirty = false;
+    updateSaveButton();
+    await loadRepoFiles();
+    render();
+    toast(fileShas.length ? `Gespeichert ✓  (+ ${fileShas.length} Datei(en))` : "Gespeichert ✓", "ok");
+    setStatus("ok", "Live");
+  } catch (e) {
+    console.error(e);
+    dirty = true;
+    updateSaveButton();
+    if (e.status === 409) {
+      toast(e.message, "err");
+      setStatus("err", "Konflikt");
+    } else {
+      toast("Speichern fehlgeschlagen: " + e.message, "err");
+      setStatus("err", "Offline?");
+    }
+  }
+}
+
+// ============================================================
+//  Rendering
+// ============================================================
+
+function render() {
+  renderTopics();
+  renderLudolph();
+}
+
+function renderTopics() {
+  const topicsEl = $("#topics");
+  topicsEl.innerHTML = "";
+  if (!state.topics.length) {
+    topicsEl.innerHTML = `<div class="empty">Noch keine Themen.</div>`;
+    return;
+  }
+  state.topics.forEach((t, idx) => {
+    const el = document.createElement("div");
+    el.className = "topic";
+    el.dataset.id = t.id;
+    el.innerHTML = `
+      <div class="row">
+        <span class="drag" title="Ziehen zum Sortieren">⋮⋮</span>
+        <input class="title" type="text" value="${escapeAttr(t.title)}" placeholder="Thema…">
+        <input class="loc" type="text" value="${escapeAttr(t.location || "")}" placeholder="z.B. Satz 1, S. 86">
+        <div class="actions">
+          <button class="small ghost" data-act="up" title="Hoch">↑</button>
+          <button class="small ghost" data-act="down" title="Runter">↓</button>
+          <button class="small danger" data-act="del" title="Löschen">✕</button>
+        </div>
+      </div>
+      <textarea class="notes" placeholder="Notizen, Stichpunkte, Formeln…">${escapeText(t.notes || "")}</textarea>
+      <div class="attachments" data-attachments></div>
+    `;
+    el.querySelector("input.title").addEventListener("input", e => { t.title = e.target.value; markDirty(); });
+    el.querySelector("input.loc").addEventListener("input",   e => { t.location = e.target.value; markDirty(); });
+    el.querySelector("textarea.notes").addEventListener("input", e => { t.notes = e.target.value; markDirty(); });
+    el.querySelector("[data-act='del']").addEventListener("click", () => {
+      if (confirm(`Thema "${t.title}" wirklich löschen?`)) {
+        t.attachments.forEach(a => pendingUploads.delete(a.id));
+        state.topics.splice(idx, 1);
+        markDirty(); render();
+      }
+    });
+    el.querySelector("[data-act='up']").addEventListener("click", () => moveTopic(idx, -1));
+    el.querySelector("[data-act='down']").addEventListener("click", () => moveTopic(idx, +1));
+
+    const drag = el.querySelector(".drag");
+    drag.addEventListener("mousedown", () => { el.draggable = true; });
+    el.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", t.id);
+      e.dataTransfer.effectAllowed = "move";
+      el.style.opacity = ".5";
+    });
+    el.addEventListener("dragend", () => { el.style.opacity = "1"; el.draggable = false; });
+    el.addEventListener("dragover", e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; });
+    el.addEventListener("drop", e => {
+      e.preventDefault();
+      const fromId = e.dataTransfer.getData("text/plain");
+      if (!fromId || fromId === t.id) return;
+      const fromIdx = state.topics.findIndex(x => x.id === fromId);
+      const toIdx = state.topics.findIndex(x => x.id === t.id);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const [item] = state.topics.splice(fromIdx, 1);
+      state.topics.splice(toIdx, 0, item);
+      markDirty(); render();
+    });
+
+    renderAttachments(el.querySelector("[data-attachments]"), t);
+    topicsEl.appendChild(el);
+  });
+}
+
+function moveTopic(idx, delta) {
+  const to = idx + delta;
+  if (to < 0 || to >= state.topics.length) return;
+  const [item] = state.topics.splice(idx, 1);
+  state.topics.splice(to, 0, item);
+  markDirty(); render();
+}
+
+function renderAttachments(container, topic) {
+  container.innerHTML = "";
+  topic.attachments.forEach(att => {
+    const isPending = pendingUploads.has(att.id);
+    const chip = document.createElement("span");
+    chip.className = "attachment" + (isPending ? " pending" : "");
+    const srcLabel = isPending ? "ungespeichert" : "Repo";
+    chip.innerHTML = `
+      <a class="name" title="${escapeAttr(att.path || att.name)}">${escapeText(att.name)}</a>
+      <span class="src">${srcLabel}</span>
+      <button class="rm" title="Entfernen">×</button>
+    `;
+    chip.querySelector(".name").addEventListener("click", () => openAttachment(att));
+    chip.querySelector(".rm").addEventListener("click", () => {
+      pendingUploads.delete(att.id);
+      topic.attachments = topic.attachments.filter(a => a.id !== att.id);
+      markDirty(); render();
+    });
+    container.appendChild(chip);
+  });
+
+  const wrap = document.createElement("span");
+  wrap.className = "attach-menu";
+  wrap.innerHTML = `<button class="small">+ Datei</button>`;
+  wrap.querySelector("button").addEventListener("click", e => {
+    e.stopPropagation();
+    openAttachMenu(wrap, topic);
+  });
+  container.appendChild(wrap);
+}
+
+function openAttachMenu(anchor, topic) {
+  document.querySelectorAll(".attach-menu .menu").forEach(m => m.remove());
+  const menu = document.createElement("div");
+  menu.className = "menu";
+
+  const localBtn = document.createElement("button");
+  localBtn.textContent = "📤 Lokale Datei hochladen…";
+  localBtn.addEventListener("click", () => { menu.remove(); uploadLocalFile(topic); });
+  menu.appendChild(localBtn);
+
+  if (repoFiles.length) {
+    const lbl = document.createElement("div");
+    lbl.className = "label";
+    lbl.textContent = "Aus Repo";
+    menu.appendChild(lbl);
+    repoFiles.forEach(rf => {
+      const b = document.createElement("button");
+      b.textContent = "📄 " + rf.path;
+      b.addEventListener("click", () => {
+        menu.remove();
+        if (topic.attachments.some(a => a.path === rf.path)) {
+          toast("Datei ist bereits angehängt", "warn");
+          return;
+        }
+        topic.attachments.push({ id: uid(), name: rf.name, path: rf.path, source: "repo" });
+        markDirty(); render();
+      });
+      menu.appendChild(b);
+    });
+  }
+
+  anchor.appendChild(menu);
+  setTimeout(() => {
+    const close = e => { if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener("click", close); } };
+    document.addEventListener("click", close);
+  }, 0);
+}
+
+function uploadLocalFile(topic) {
+  const picker = $("#filePicker");
+  picker.value = "";
+  picker.onchange = () => {
+    const file = picker.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast("Datei > 4 MB — wird vermutlich nicht hochgeladen werden können", "warn");
+    }
+    const id = uid();
+    topic.attachments.push({
+      id, name: file.name, path: `${NOTES_DIR}/${file.name}`, source: "local-pending"
+    });
+    pendingUploads.set(id, file);
+    markDirty(); render();
+    toast("Wird beim Speichern hochgeladen", "warn");
+  };
+  picker.click();
+}
+
+async function openAttachment(att) {
+  if (pendingUploads.has(att.id)) {
+    const file = pendingUploads.get(att.id);
+    const url = URL.createObjectURL(file);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  if (att.path) window.open(`/api/file?path=${encodeURIComponent(att.path)}`, "_blank");
+}
+
+function renderLudolph() {
+  const ludolphEl = $("#ludolph");
+  ludolphEl.innerHTML = "";
+  if (!state.ludolph.length) {
+    ludolphEl.innerHTML = `<div class="empty">Noch keine Sprüche.</div>`;
+    return;
+  }
+  state.ludolph.forEach((s, idx) => {
+    const el = document.createElement("div");
+    el.className = "spruch";
+    el.innerHTML = `
+      <span class="num">${idx + 1}.</span>
+      <textarea placeholder="Spruch eingeben…">${escapeText(s.text || "")}</textarea>
+      <button class="rm" title="Entfernen">✕</button>
+    `;
+    const ta = el.querySelector("textarea");
+    autosize(ta);
+    ta.addEventListener("input", e => { s.text = e.target.value; autosize(ta); markDirty(); });
+    el.querySelector(".rm").addEventListener("click", () => {
+      state.ludolph.splice(idx, 1);
+      markDirty(); render();
+    });
+    ludolphEl.appendChild(el);
+  });
+}
+function autosize(ta) { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
+
+// ============================================================
+//  Reload
+// ============================================================
+
+async function reload() {
+  if (dirty) {
+    if (!confirm("Du hast ungespeicherte Änderungen — wirklich verwerfen und neu laden?")) return;
+  }
+  try {
+    showLoading("Lade vom Server…");
+    await loadFromServer();
+    await loadRepoFiles();
+    pendingUploads.clear();
+    dirty = false;
+    updateSaveButton();
+    render();
+    setStatus("ok", "Live");
+    toast("Neu geladen ✓", "ok");
+  } catch (e) {
+    toast("Laden fehlgeschlagen: " + e.message, "err");
+    setStatus("err", "Offline?");
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+//  Wiring
+// ============================================================
+
+$("#btnSave").addEventListener("click", save);
+$("#btnReload").addEventListener("click", reload);
+$("#btnHelp").addEventListener("click", () => $("#helpDlg").showModal());
+$("#closeHelp").addEventListener("click", () => $("#helpDlg").close());
+
+$("#btnAddTopic").addEventListener("click", addTopicFromInput);
+$("#newTopicInput").addEventListener("keydown", e => { if (e.key === "Enter") addTopicFromInput(); });
+function addTopicFromInput() {
+  const input = $("#newTopicInput");
+  const title = input.value.trim();
+  if (!title) return;
+  state.topics.push({ id: uid(), title, location: "", notes: "", attachments: [] });
+  input.value = "";
+  markDirty(); render();
+}
+
+$("#btnAddSpruch").addEventListener("click", () => {
+  state.ludolph.push({ id: uid(), text: "" });
+  markDirty(); render();
+  const all = $("#ludolph").querySelectorAll("textarea");
+  if (all.length) all[all.length - 1].focus();
+});
+
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "s") { e.preventDefault(); if (dirty) save(); }
+});
+
+// ============================================================
+//  Init
+// ============================================================
+
+(async function init() {
+  // Quick first paint from cache
+  try {
+    const cached = JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY) || "null");
+    if (cached?.state?.topics) {
+      state = cached.state;
+      ensureIds();
+      render();
+    }
+  } catch (e) {}
+
+  setStatus("", "Lade…");
+  showLoading("Lade Daten…");
+  try {
+    await loadFromServer();
+    await loadRepoFiles();
+    render();
+    updateSaveButton();
+    setStatus("ok", "Live");
+  } catch (e) {
+    console.error(e);
+    setStatus("err", "Offline?");
+    toast("Server nicht erreichbar: " + e.message, "err");
+  } finally {
+    hideLoading();
+  }
+})();
+</script>
+</body>
+</html>
