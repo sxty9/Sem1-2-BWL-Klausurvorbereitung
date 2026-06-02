@@ -91,29 +91,10 @@ window.KLAUSUR_DATA = {
       "notes": "",
       "attachments": [],
       "id": "typl0gob3rto"
-    },
-    {
-      "id": "gexuvhps44yd",
-      "title": "Das ist ein Test",
-      "location": "fish",
-      "notes": "blabliblub",
-      "attachments": [
-        {
-          "id": "pzivv8wz4y2h",
-          "name": "02 Geschäftsfähigkeiten - Aufgabe (1).pdf",
-          "path": "notes/02 Geschäftsfähigkeiten - Aufgabe (1).pdf",
-          "source": "repo"
-        }
-      ]
     }
   ],
-  "ludolph": [
-    {
-      "id": "k32pfkqs5tse",
-      "text": "spruch1\n"
-    }
-  ],
+  "ludolph": [],
   "_meta": {
-    "lastSaved": "2026-06-02T09:12:37.536Z"
+    "lastSaved": "2026-06-02T09:13:02.607Z"
   }
 };
