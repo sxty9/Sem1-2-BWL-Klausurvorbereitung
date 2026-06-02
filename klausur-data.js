@@ -103,6 +103,12 @@ window.KLAUSUR_DATA = {
           "name": "Unternehmenssteuern_Lernblatt.html",
           "path": "notes/Unternehmenssteuern_Lernblatt.html",
           "source": "repo"
+        },
+        {
+          "id": "fxbpwsu00zz3",
+          "name": "Unternehmenssteuern_Lernblatt.pdf",
+          "path": "notes/Unternehmenssteuern_Lernblatt.pdf",
+          "source": "repo"
         }
       ]
     }
@@ -114,6 +120,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T10:29:22.477Z"
+    "lastSaved": "2026-06-02T10:32:51.643Z"
   }
 };
