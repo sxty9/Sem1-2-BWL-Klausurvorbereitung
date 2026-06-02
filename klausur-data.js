@@ -82,7 +82,14 @@ window.KLAUSUR_DATA = {
       "title": "Blue Ocean",
       "location": "Separate Datei in Moodle",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "12cd8hx15bs0",
+          "name": "Blue Ocean.pdf",
+          "path": "materialien/Blue Ocean.pdf",
+          "source": "repo"
+        }
+      ],
       "id": "j2jbktkc3rto"
     },
     {
@@ -120,6 +127,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T10:32:51.643Z"
+    "lastSaved": "2026-06-02T10:36:09.763Z"
   }
 };
