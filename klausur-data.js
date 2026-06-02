@@ -167,7 +167,7 @@ window.KLAUSUR_DATA = {
     {
       "id": "u1vrzj8y8h49",
       "text": "Im Durchschnitt war der graben nur ein Meter tief und trotzdem ist die Kuh ersoffen \n",
-      "height": "60px"
+      "height": "54px"
     },
     {
       "id": "wn02mkpdtq0t",
@@ -203,6 +203,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:44:54.258Z"
+    "lastSaved": "2026-06-02T11:45:01.225Z"
   }
 };
