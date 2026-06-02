@@ -605,10 +605,14 @@ function loadAnkiLocal() {
       store.topicExportCards = (parsed.topicExportCards && typeof parsed.topicExportCards === "object")
                                   ? parsed.topicExportCards : {};
       store.lastSyncHash     = typeof parsed.lastSyncHash === "string" ? parsed.lastSyncHash : "";
-      // Migration: prior variants (topicExportHashes / cardSnapshots) couldn't
-      // tell "add/edit" from "only delete". Anything they recorded becomes an
-      // empty card-map under the new schema, so the student is prompted to
-      // re-export once — that re-export then captures the proper per-card map.
+      // Migration from prior schema variants (topicExportHashes / cardSnapshots).
+      // Those variants didn't carry per-card hashes, so we can't reconstruct the
+      // new snapshot from them. Instead we flag the topics as "needs lazy
+      // migration" and complete the migration in finishLegacyMigration() once
+      // state.topics has been loaded from the server. We seed the new snap from
+      // current server cards then — the only safe choice without losing data.
+      // Using {} here would incorrectly mark every existing card as "new"
+      // and force the student into an unwanted re-export.
       const legacyTopicIds = new Set();
       if (parsed.topicExportHashes && typeof parsed.topicExportHashes === "object") {
         for (const tid of Object.keys(parsed.topicExportHashes)) legacyTopicIds.add(tid);
@@ -618,11 +622,12 @@ function loadAnkiLocal() {
           if (s && s.topicId) legacyTopicIds.add(s.topicId);
         }
       }
-      for (const tid of legacyTopicIds) {
-        if (store.topicExportCards[tid] === undefined) {
-          store.topicExportCards[tid] = {}; // empty → first real card looks "new" → re-export prompt
-          didMigrate = true;
-        }
+      if (legacyTopicIds.size) {
+        store._legacyMigrate = Array.from(legacyTopicIds).filter(
+          tid => store.topicExportCards[tid] === undefined
+        );
+        if (store._legacyMigrate.length === 0) delete store._legacyMigrate;
+        else didMigrate = true;
       }
       if (didMigrate || parsed.topicExportHashes || parsed.cardSnapshots) {
         try { localStorage.setItem(ANKI_LOCAL_PREFIX + id, JSON.stringify(store)); } catch (e) {}
@@ -745,9 +750,8 @@ function ensureIds() {
   delete state.deletedCards;
 }
 
-// Build an ankiId → { topicTitle, front, back } index over the current state.
-// Used both for the cross-student delete diff in loadFromServer and for the
-// per-student export-awareness check.
+// Build an ankiId → { topicTitle, front, back } index over the current topic
+// cards. Used for cross-student delete diff and export-awareness checks.
 function buildCardIndex(topics) {
   const idx = new Map();
   for (const t of (topics || [])) {
@@ -762,6 +766,66 @@ function buildCardIndex(topics) {
     }
   }
   return idx;
+}
+
+// Build an ankiId → info index that also includes Ludolph Sprüche under the
+// pseudo-topic "Ludolph Sprüche". Spruch ankiIds are "ludolph:<spruch.id>"
+// and the front/back come from the same splitSpruch logic used at export
+// time, so diff & tombstone behaviour mirrors what Anki actually holds.
+function buildFullIndex() {
+  const idx = buildCardIndex(state.topics);
+  for (const s of (state.ludolph || [])) {
+    if (!s || !s.id || !s.text || !s.text.trim()) continue;
+    const fb = splitSpruch(s.text);
+    if (!fb) continue;
+    const ankiId = "ludolph:" + s.id;
+    idx.set(ankiId, {
+      ankiId,
+      topicTitle: "Ludolph Sprüche",
+      front: fb.front,
+      back: fb.back
+    });
+  }
+  return idx;
+}
+
+// Complete the lazy migration flagged by loadAnkiLocal: for each topic the
+// student exported under a prior schema, seed the new per-card snapshot from
+// the current state. Assumes "the student last exported what they have now"
+// — the only safe choice without per-card historical data. Called once after
+// state.topics is loaded from the server.
+function finishLegacyMigration() {
+  const store = loadAnkiLocal();
+  if (!Array.isArray(store._legacyMigrate) || !store._legacyMigrate.length) return;
+  for (const tid of store._legacyMigrate) {
+    const t = (state.topics || []).find(x => x.id === tid);
+    if (!t) {
+      // Topic no longer exists on the server → nothing to snapshot. Skip; the
+      // exported[] entries (if any) still drive tombstones via the diff path.
+      continue;
+    }
+    const map = {};
+    for (const c of (t.cards || [])) {
+      if (!c || !c.id || (!c.front && !c.back)) continue;
+      map[ankiCardKey(t, c)] = cardContentHash(c.front, c.back);
+    }
+    store.topicExportCards[tid] = map;
+  }
+  delete store._legacyMigrate;
+  saveAnkiLocal(store);
+}
+
+// Drop any tombstones whose ankiId is back in the current state — typically
+// after a rollback resurrects a deleted card, or another student re-creates
+// a card with the same stable id. Without this, the popup would keep telling
+// the student to delete a card from Anki that legitimately exists again.
+function dropResurrectedTombstones() {
+  const store = loadAnkiLocal();
+  if (!store.deletedCards.length) return;
+  const live = buildFullIndex();
+  const before = store.deletedCards.length;
+  store.deletedCards = store.deletedCards.filter(d => !live.has(d.ankiId));
+  if (store.deletedCards.length !== before) saveAnkiLocal(store);
 }
 
 // Low-level tombstone recorder operating on a plain { ankiId, topicTitle,
@@ -844,33 +908,41 @@ async function api(path, opts = {}) {
 
 async function loadFromServer() {
   // Snapshot card identities from the in-memory state BEFORE replacing it.
-  // This is how we detect cards that disappeared while we were offline —
-  // typically because another student deleted a card or an entire topic.
-  // recordTombstoneInfo() then gates on wasExported() so students who never
-  // exported the card get no false cleanup notice. Topic renames/edits do NOT
-  // trigger this branch because ankiCardKey is (topic.id + ":" + card.id) and
-  // both ids stay stable across title edits.
-  const oldCardIndex = buildCardIndex(state.topics);
+  // Used to detect cards that disappeared while we were offline — typically
+  // because another student deleted a card or an entire topic.
+  // recordTombstoneInfo() gates on wasExported() so students who never
+  // exported the card get no false cleanup notice. Topic renames/edits do
+  // NOT trigger this branch because ankiCardKey is (topic.id + ":" + card.id)
+  // and both ids stay stable across title edits. buildFullIndex includes
+  // Ludolph Sprüche so cross-student Spruch deletes also create tombstones.
+  const oldCardIndex = buildFullIndex();
 
   const r = await api("/api/data");
   const json = await r.json();
   state.topics = Array.isArray(json.state?.topics) ? json.state.topics : [];
   state.ludolph = Array.isArray(json.state?.ludolph) ? json.state.ludolph : [];
-  // Migration: old global json.state.deletedCards (from commit a2955a4) is
-  // intentionally ignored — it was shared across all students and would create
-  // false cleanup notices for students who never exported those cards. Per-student
-  // tombstones now live in localStorage only. ensureIds() strips the shared field.
+  // Old global json.state.deletedCards (from commit a2955a4) is intentionally
+  // ignored — it was shared across all students and would create false cleanup
+  // notices. Per-student tombstones now live in localStorage. ensureIds() strips
+  // the shared field.
   ensureIds();
   baseSha = json.sha || null;
 
-  // Cross-student delete awareness: any ankiId that was present before and
-  // isn't now triggers tombstone creation (still gated on wasExported). Covers
-  // both deletions of single cards and deletions of entire topics by other
-  // students between our last load and this one.
-  const newIndex = buildCardIndex(state.topics);
+  // Complete legacy schema migration now that we have the current server
+  // state to seed snapshots from (must come before the diff so we don't
+  // tombstone cards a migrated topic just "found" for the first time).
+  finishLegacyMigration();
+
+  // Cross-student delete awareness.
+  const newIndex = buildFullIndex();
   for (const [ankiId, info] of oldCardIndex) {
     if (!newIndex.has(ankiId)) recordTombstoneInfo(info);
   }
+
+  // Resurrection: cards that disappeared earlier (tombstoned) but are back
+  // now (e.g. via another student's rollback) shouldn't keep telling the
+  // student to delete them from Anki.
+  dropResurrectedTombstones();
 
   try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
 }
@@ -1205,6 +1277,20 @@ function renderLudolph() {
       if (h && h !== s.height) { s.height = h; markDirty(); }
     });
     el.querySelector(".rm").addEventListener("click", () => {
+      // Tombstone the Spruch under the same "ludolph:" namespace used at
+      // export — gated on wasExported() so deletions of never-exported
+      // Sprüche stay silent.
+      if (s && s.text && s.text.trim()) {
+        const fb = splitSpruch(s.text);
+        if (fb) {
+          recordTombstoneInfo({
+            ankiId: "ludolph:" + s.id,
+            topicTitle: "Ludolph Sprüche",
+            front: fb.front,
+            back: fb.back
+          });
+        }
+      }
       state.ludolph.splice(idx, 1);
       markDirty(); render();
     });
@@ -1359,6 +1445,27 @@ function computePendingChanges() {
     }
   }
 
+  // Same logic for Ludolph Sprüche under the pseudo-topic "ludolph". Only
+  // surfaces if the student has at least once exported the Ludolph deck.
+  const ludolphSnap = snaps["ludolph"];
+  if (ludolphSnap !== undefined) {
+    let needsReExport = false;
+    for (const s of (state.ludolph || [])) {
+      if (!s || !s.id || !s.text || !s.text.trim()) continue;
+      const fb = splitSpruch(s.text);
+      if (!fb) continue;
+      const ankiId = "ludolph:" + s.id;
+      const stored = ludolphSnap[ankiId];
+      if (stored === undefined || stored !== cardContentHash(fb.front, fb.back)) {
+        needsReExport = true;
+        break;
+      }
+    }
+    if (needsReExport) {
+      topicsNeedingExport.push({ topicId: "ludolph", topicTitle: "Ludolph Sprüche" });
+    }
+  }
+
   const tombstones = (store.deletedCards || []).slice();
 
   const sig = JSON.stringify({
@@ -1445,9 +1552,15 @@ function openSyncDlg() {
         <button class="small primary" data-topic-id="${escapeAttr(t.topicId)}">Re-Exportieren</button>
       `;
       row.querySelector("button").addEventListener("click", async () => {
-        const topic = (state.topics || []).find(x => x.id === t.topicId);
-        if (!topic) { toast("Thema nicht gefunden", "err"); return; }
-        await exportAnki(topic);
+        // The Ludolph pseudo-topic uses a dedicated exporter; topic cards
+        // go through the regular per-topic exporter.
+        if (t.topicId === "ludolph") {
+          await exportLudolphAnki();
+        } else {
+          const topic = (state.topics || []).find(x => x.id === t.topicId);
+          if (!topic) { toast("Thema nicht gefunden", "err"); return; }
+          await exportAnki(topic);
+        }
         // Re-render the popup so this topic's row disappears.
         openSyncDlg();
       });
@@ -1702,7 +1815,17 @@ async function exportLudolphAnki() {
     const fb = splitSpruch(s.text);
     return fb ? { id: "ludolph:" + s.id, front: fb.front, back: fb.back } : null;
   }).filter(Boolean);
+  // Mark every exported Spruch ankiId + snapshot the deck so future drift
+  // (edited Spruch, added Spruch, deleted Spruch) is detected just like for
+  // topic cards. Stored under the pseudo-topic "ludolph" in topicExportCards.
+  markExported(cards.map(c => c.id));
+  const store = loadAnkiLocal();
+  const map = {};
+  for (const c of cards) map[c.id] = cardContentHash(c.front, c.back);
+  store.topicExportCards["ludolph"] = map;
+  saveAnkiLocal(store);
   await downloadApkg({ deckId: "ludolph", deckName: "Ludolph Sprüche", cards });
+  refreshSync();
 }
 
 async function downloadApkg(body) {
@@ -1779,11 +1902,11 @@ async function openHistory() {
 async function rollbackTo(sha, label) {
   showLoading("Stelle wieder her…");
   try {
-    // Snapshot pre-rollback cards so we can tombstone any of MY exported cards
-    // that the rollback target doesn't contain. Without this, a rollback to a
-    // state before a card was added would silently orphan that card in the
-    // student's local Anki collection.
-    const oldCardIndex = buildCardIndex(state.topics);
+    // Snapshot pre-rollback cards (incl. Ludolph) so we can tombstone any of
+    // MY exported cards that the rollback target doesn't contain. Without
+    // this, a rollback to a state before a card was added would silently
+    // orphan that card in the student's local Anki collection.
+    const oldCardIndex = buildFullIndex();
 
     // Load state from that commit
     const r = await api(`/api/history?sha=${encodeURIComponent(sha)}`);
@@ -1792,12 +1915,15 @@ async function rollbackTo(sha, label) {
     state.topics = Array.isArray(oldState.topics) ? oldState.topics : [];
     state.ludolph = Array.isArray(oldState.ludolph) ? oldState.ludolph : [];
     ensureIds();
+    finishLegacyMigration();
     // Mirror the diff logic from loadFromServer so rollback also surfaces
     // cleanup for cards that vanish as a result of the rollback.
-    const newIndex = buildCardIndex(state.topics);
+    const newIndex = buildFullIndex();
     for (const [ankiId, info] of oldCardIndex) {
       if (!newIndex.has(ankiId)) recordTombstoneInfo(info);
     }
+    // And drop tombstones for cards the rollback brought back.
+    dropResurrectedTombstones();
     // Force-save immediately (no dirty check, use current baseSha)
     const saveR = await api("/api/data", {
       method: "POST",
