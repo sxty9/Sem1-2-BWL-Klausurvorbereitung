@@ -51,7 +51,7 @@ window.KLAUSUR_DATA = {
       "id": "axftssp23rto"
     },
     {
-      "title": "Portfoliomethodik",
+      "title": "Portfoliomethodik / BCG-Matrix",
       "location": "Satz 2, S. 46",
       "notes": "",
       "attachments": [],
@@ -61,7 +61,14 @@ window.KLAUSUR_DATA = {
       "title": "Kennziffern / Bilanzanalyse",
       "location": "Satz 2, S. 95",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "wbtgkb2k7msf",
+          "name": "Bilanzanalyse_Lernzettel.pdf",
+          "path": "notes/Bilanzanalyse_Lernzettel.pdf",
+          "source": "repo"
+        }
+      ],
       "id": "z7qnxu0n3rto"
     },
     {
@@ -127,6 +134,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T10:36:09.763Z"
+    "lastSaved": "2026-06-02T11:05:59.913Z"
   }
 };
