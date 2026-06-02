@@ -97,11 +97,18 @@ window.KLAUSUR_DATA = {
       "title": "Das ist ein Test",
       "location": "fish",
       "notes": "blabliblub",
-      "attachments": []
+      "attachments": [
+        {
+          "id": "pzivv8wz4y2h",
+          "name": "02 Geschäftsfähigkeiten - Aufgabe (1).pdf",
+          "path": "notes/02 Geschäftsfähigkeiten - Aufgabe (1).pdf",
+          "source": "repo"
+        }
+      ]
     }
   ],
   "ludolph": [],
   "_meta": {
-    "lastSaved": "2026-06-02T09:11:20.690Z"
+    "lastSaved": "2026-06-02T09:11:58.172Z"
   }
 };
