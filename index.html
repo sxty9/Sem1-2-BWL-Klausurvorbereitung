@@ -178,16 +178,20 @@
     display: flex; flex-direction: column; gap: 10px;
   }
   .card-item:focus-within { border-color: var(--accent); }
+  .card-item.dragging { opacity: .5; }
   .card-item .card-bar {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; gap: 8px;
     font-size: 11px; color: var(--muted); letter-spacing: .5px;
   }
-  .card-item .card-bar .num { text-transform: uppercase; font-weight: 600; }
-  .card-item .card-bar .rm {
-    background: transparent; border: none; color: var(--muted);
-    cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1;
+  .card-item .card-bar .drag {
+    cursor: grab; user-select: none; color: var(--muted);
+    padding: 2px 6px; border-radius: 6px; font-size: 13px; line-height: 1;
   }
-  .card-item .card-bar .rm:hover { color: var(--danger); }
+  .card-item .card-bar .drag:hover { background: var(--panel); color: var(--text); }
+  .card-item .card-bar .num { text-transform: uppercase; font-weight: 600; }
+  .card-item .card-bar .actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .card-item .card-bar .rm { color: var(--danger); border-color: #553030; }
+  .card-item .card-bar .rm:hover { background: #2a1717; }
   .card-field { display: flex; flex-direction: column; gap: 4px; }
   .card-field > label {
     font-size: 10px; color: var(--muted);
@@ -859,10 +863,16 @@ function renderAnkiCards() {
     cards.forEach((card, ci) => {
       const item = document.createElement("div");
       item.className = "card-item";
+      item.dataset.id = card.id;
       item.innerHTML = `
         <div class="card-bar">
+          <span class="drag" title="Ziehen zum Sortieren">⋮⋮</span>
           <span class="num">Karte ${ci + 1}</span>
-          <button class="rm" title="Karte löschen">×</button>
+          <div class="actions">
+            <button class="small ghost" data-act="up" title="Hoch">↑</button>
+            <button class="small ghost" data-act="down" title="Runter">↓</button>
+            <button class="small rm" title="Karte löschen">✕</button>
+          </div>
         </div>
         <div class="card-field front">
           <label>Vorderseite</label>
@@ -877,10 +887,34 @@ function renderAnkiCards() {
       const backTA = item.querySelector(".back textarea");
       frontTA.addEventListener("input", e => { card.front = e.target.value; autoGrow(frontTA); markDirty(); });
       backTA.addEventListener("input", e => { card.back = e.target.value; autoGrow(backTA); markDirty(); });
+      item.querySelector("[data-act='up']").addEventListener("click", () => moveCard(ci, -1));
+      item.querySelector("[data-act='down']").addEventListener("click", () => moveCard(ci, +1));
       item.querySelector(".rm").addEventListener("click", () => {
         cards.splice(ci, 1);
         markDirty(); renderAnkiCards(); render();
       });
+
+      const drag = item.querySelector(".drag");
+      drag.addEventListener("mousedown", () => { item.draggable = true; });
+      item.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", card.id);
+        e.dataTransfer.effectAllowed = "move";
+        item.classList.add("dragging");
+      });
+      item.addEventListener("dragend", () => { item.classList.remove("dragging"); item.draggable = false; });
+      item.addEventListener("dragover", e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; });
+      item.addEventListener("drop", e => {
+        e.preventDefault();
+        const fromId = e.dataTransfer.getData("text/plain");
+        if (!fromId || fromId === card.id) return;
+        const fromIdx = cards.findIndex(x => x.id === fromId);
+        const toIdx = cards.findIndex(x => x.id === card.id);
+        if (fromIdx < 0 || toIdx < 0) return;
+        const [moved] = cards.splice(fromIdx, 1);
+        cards.splice(toIdx, 0, moved);
+        markDirty(); renderAnkiCards();
+      });
+
       container.appendChild(item);
       // Size to content after insertion into DOM (scrollHeight needs layout).
       autoGrow(frontTA);
@@ -889,6 +923,16 @@ function renderAnkiCards() {
   }
   $("#ankiCount").textContent = `${cards.length} Karte${cards.length !== 1 ? "n" : ""}`;
   $("#ankiExport").disabled = !cards.length;
+}
+
+function moveCard(idx, delta) {
+  const cards = ankiTopic && ankiTopic.cards;
+  if (!cards) return;
+  const to = idx + delta;
+  if (to < 0 || to >= cards.length) return;
+  const [item] = cards.splice(idx, 1);
+  cards.splice(to, 0, item);
+  markDirty(); renderAnkiCards();
 }
 
 $("#ankiAddCard").addEventListener("click", () => {
