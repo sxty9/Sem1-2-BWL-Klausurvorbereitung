@@ -166,12 +166,13 @@ window.KLAUSUR_DATA = {
   "ludolph": [
     {
       "id": "u1vrzj8y8h49",
-      "text": "Im Durchschnitt war der graben nur ein Meter tief und trotzdem ist die Kuh ersoffen \n",
-      "height": "54px"
+      "text": "Im Durchschnitt war der Graben nur ein Meter tief und trotzdem ist die Kuh ersoffen.",
+      "height": "55px"
     },
     {
       "id": "wn02mkpdtq0t",
-      "text": "Immer viel trinken, aber von Wasser ist nicht die Rede"
+      "text": "Immer viel trinken, aber von Wasser ist nicht die Rede",
+      "height": "2px"
     },
     {
       "id": "eml4ppjlu85h",
@@ -203,6 +204,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:45:01.225Z"
+    "lastSaved": "2026-06-02T11:45:36.309Z"
   }
 };
