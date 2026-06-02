@@ -178,9 +178,13 @@ window.KLAUSUR_DATA = {
     {
       "id": "h5wft6cybnvw",
       "text": "Die Basis ist die Grundlage aller Fundamente"
+    },
+    {
+      "id": "ifv0a7nxcai3",
+      "text": "Planung ist den Zufall durch den Irrtum zu ersetzen"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:37:18.846Z"
+    "lastSaved": "2026-06-02T11:38:04.839Z"
   }
 };
