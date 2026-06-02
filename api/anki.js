@@ -46,6 +46,21 @@ function stableGuid(id) {
   return out;
 }
 
+// Derive a stable positive integer from a seed. Anki uses ms-since-epoch-like
+// integers as model/deck/note ids; deriving them from a stable seed (topic id
+// for decks, "klausur-model-v1" for the note type) means re-imports update the
+// existing model/deck instead of creating duplicates each time. We keep the
+// value below 2^52 so it stays safe across JSON and SQLite INTEGER.
+function stableInt(seed) {
+  const hashHex = crypto.createHash("sha1").update(String(seed), "utf8").digest("hex");
+  // 13 hex chars = 52 bits, fits comfortably in a JS number / Anki id.
+  return Number(BigInt("0x" + hashHex.substring(0, 13)));
+}
+
+// Note type ("Basic Front/Back") identity — stable across all exports so we
+// don't pollute the student's Anki collection with one new model per export.
+const MODEL_ID = stableInt("bwl-klausur-basic-model-v1");
+
 function fieldChecksum(field) {
   const stripped = field.replace(/<[^>]*>/g, "").trim();
   const hash = crypto.createHash("sha1").update(stripped, "utf8").digest("hex");
@@ -55,7 +70,7 @@ function fieldChecksum(field) {
 function buildApkgDb(SQL, allDecks) {
   const db = new SQL.Database();
   const now = Math.floor(Date.now() / 1000);
-  const modelId = Date.now();
+  const modelId = MODEL_ID;
 
   // Schema
   db.run(`CREATE TABLE col (
@@ -121,7 +136,11 @@ function buildApkgDb(SQL, allDecks) {
     1: { id: 1, name: "Default", mod: now, usn: -1, lrnToday: [0,0], revToday: [0,0], newToday: [0,0], timeToday: [0,0], collapsed: false, desc: "", dyn: 0, conf: 1, extendRev: 50, extendNew: 10 }
   };
   allDecks.forEach((d, di) => {
-    const deckId = Date.now() + di + 1;
+    // Prefer the stable client-supplied id (e.g. "topic:<topic-id>"), so renaming
+    // a topic just renames the deck in Anki (same deckId, new name) rather than
+    // creating a brand-new deck alongside the old one. Falls back to the name
+    // when no id was supplied so legacy callers still work.
+    const deckId = stableInt(d.id ? "deck:" + d.id : "deckname:" + d.name);
     d._deckId = deckId;
     decks[deckId] = {
       id: deckId, name: d.name, mod: now, usn: -1,
@@ -200,8 +219,8 @@ module.exports = async (req, res) => {
       // Multi-deck mode
       allDecks = body.decks.filter(d => d.cards && d.cards.length > 0);
     } else if (body.deckName && Array.isArray(body.cards) && body.cards.length > 0) {
-      // Single-deck mode
-      allDecks = [{ name: body.deckName, cards: body.cards }];
+      // Single-deck mode — pass through optional deckId for stable Anki deck identity.
+      allDecks = [{ id: body.deckId, name: body.deckName, cards: body.cards }];
     } else {
       return gh.sendJson(res, 400, { error: "Keine Karten zum Exportieren" });
     }

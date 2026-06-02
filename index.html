@@ -610,6 +610,45 @@ function ensureIds() {
   delete state.deletedCards;
 }
 
+// Build an ankiId → { topicTitle, front, back } index over the current state.
+// Used both for the cross-student delete diff in loadFromServer and for the
+// per-student export-awareness check.
+function buildCardIndex(topics) {
+  const idx = new Map();
+  for (const t of (topics || [])) {
+    for (const c of (t.cards || [])) {
+      if (!c || !(c.front || c.back)) continue;
+      idx.set(ankiCardKey(t, c), {
+        ankiId: ankiCardKey(t, c),
+        topicTitle: (t && t.title) || "Unbenannt",
+        front: c.front || "",
+        back: c.back || ""
+      });
+    }
+  }
+  return idx;
+}
+
+// Low-level tombstone recorder operating on a plain { ankiId, topicTitle,
+// front, back } info object. All callsites — direct deletes, topic deletes,
+// and the cross-student diff in loadFromServer — funnel through here so the
+// export-awareness gate and de-dupe logic is in exactly one place.
+function recordTombstoneInfo(info) {
+  if (!info || !info.ankiId) return;
+  if (!wasExported(info.ankiId)) return; // never exported → not in this student's Anki
+  const store = loadAnkiLocal();
+  if (store.deletedCards.some(d => d.ankiId === info.ankiId)) return;
+  store.deletedCards.push({
+    ankiId: info.ankiId,
+    guid: ankiGuid(info.ankiId),
+    topicTitle: info.topicTitle || "Unbenannt",
+    front: info.front || "",
+    back: info.back || "",
+    deletedAt: new Date().toISOString()
+  });
+  saveAnkiLocal(store);
+}
+
 // Record a tombstone when a card is removed — but ONLY if the *current student*
 // has previously exported this card to their own Anki collection. A card that
 // was added and deleted again without any export in between never reached Anki,
@@ -617,21 +656,12 @@ function ensureIds() {
 // the student's local store, so one student's cleanup list never leaks to another.
 function recordTombstone(topic, card) {
   if (!card || !(card.front || card.back)) return; // skip empty placeholder cards
-  const ankiId = ankiCardKey(topic, card);
-  if (!wasExported(ankiId)) return; // export-awareness: never exported → no cleanup needed
-  const store = loadAnkiLocal();
-  // De-dupe: if this card was already tombstoned, don't add it twice.
-  if (store.deletedCards.some(d => d.ankiId === ankiId)) return;
-  store.deletedCards.push({
-    ankiId: ankiId,
-    guid: ankiGuid(ankiId),
+  recordTombstoneInfo({
+    ankiId: ankiCardKey(topic, card),
     topicTitle: (topic && topic.title) || "Unbenannt",
-    deckName: "BWL - " + ((topic && topic.title) || "Unbenannt"),
     front: card.front || "",
-    back: card.back || "",
-    deletedAt: new Date().toISOString()
+    back: card.back || ""
   });
-  saveAnkiLocal(store);
 }
 
 function markDirty() {
@@ -674,6 +704,15 @@ async function api(path, opts = {}) {
 }
 
 async function loadFromServer() {
+  // Snapshot card identities from the in-memory state BEFORE replacing it.
+  // This is how we detect cards that disappeared while we were offline —
+  // typically because another student deleted a card or an entire topic.
+  // recordTombstoneInfo() then gates on wasExported() so students who never
+  // exported the card get no false cleanup notice. Topic renames/edits do NOT
+  // trigger this branch because ankiCardKey is (topic.id + ":" + card.id) and
+  // both ids stay stable across title edits.
+  const oldCardIndex = buildCardIndex(state.topics);
+
   const r = await api("/api/data");
   const json = await r.json();
   state.topics = Array.isArray(json.state?.topics) ? json.state.topics : [];
@@ -684,6 +723,16 @@ async function loadFromServer() {
   // tombstones now live in localStorage only. ensureIds() strips the shared field.
   ensureIds();
   baseSha = json.sha || null;
+
+  // Cross-student delete awareness: any ankiId that was present before and
+  // isn't now triggers tombstone creation (still gated on wasExported). Covers
+  // both deletions of single cards and deletions of entire topics by other
+  // students between our last load and this one.
+  const newIndex = buildCardIndex(state.topics);
+  for (const [ankiId, info] of oldCardIndex) {
+    if (!newIndex.has(ankiId)) recordTombstoneInfo(info);
+  }
+
   try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
 }
 
@@ -1190,7 +1239,7 @@ async function cleanupExportApkg() {
     front: "[GELÖSCHT] " + (d.front || ""),
     back: (d.back || "") + `<hr><small>In Anki entfernen · guid ${d.guid}</small>`
   }));
-  await downloadApkg({ deckName: "BWL Klausur - ZU LÖSCHEN", cards });
+  await downloadApkg({ deckId: "cleanup", deckName: "BWL Klausur - ZU LÖSCHEN", cards });
 }
 
 function cleanupClear() {
@@ -1252,7 +1301,9 @@ async function exportAnki(topic) {
   // Export-awareness: remember (for this student) which cards reached Anki, so a
   // later deletion of one of them produces a cleanup tombstone.
   markExported(cards.map(c => c.id));
-  await downloadApkg({ deckName, cards });
+  // deckId is derived from topic.id so renaming the topic updates the existing
+  // Anki deck name instead of producing a duplicate deck on re-import.
+  await downloadApkg({ deckId: "topic:" + topic.id, deckName, cards });
   renderAnkiCleanup();
 }
 
@@ -1260,6 +1311,7 @@ async function exportAllAnki() {
   const decks = state.topics
     .filter(t => t.cards && t.cards.length && t.cards.some(c => c.front && c.front.trim()))
     .map(t => ({
+      id: "topic:" + t.id,
       name: "BWL Klausur::" + (t.title || "Unbenannt"),
       cards: t.cards.filter(c => c.front && c.front.trim()).map(c => ({ id: ankiCardKey(t, c), front: c.front, back: c.back || "" }))
     }));
@@ -1327,7 +1379,7 @@ async function exportLudolphAnki() {
     const fb = splitSpruch(s.text);
     return fb ? { id: "ludolph:" + s.id, front: fb.front, back: fb.back } : null;
   }).filter(Boolean);
-  await downloadApkg({ deckName: "Ludolph Sprüche", cards });
+  await downloadApkg({ deckId: "ludolph", deckName: "Ludolph Sprüche", cards });
 }
 
 async function downloadApkg(body) {
@@ -1404,6 +1456,12 @@ async function openHistory() {
 async function rollbackTo(sha, label) {
   showLoading("Stelle wieder her…");
   try {
+    // Snapshot pre-rollback cards so we can tombstone any of MY exported cards
+    // that the rollback target doesn't contain. Without this, a rollback to a
+    // state before a card was added would silently orphan that card in the
+    // student's local Anki collection.
+    const oldCardIndex = buildCardIndex(state.topics);
+
     // Load state from that commit
     const r = await api(`/api/history?sha=${encodeURIComponent(sha)}`);
     const { state: oldState } = await r.json();
@@ -1411,6 +1469,12 @@ async function rollbackTo(sha, label) {
     state.topics = Array.isArray(oldState.topics) ? oldState.topics : [];
     state.ludolph = Array.isArray(oldState.ludolph) ? oldState.ludolph : [];
     ensureIds();
+    // Mirror the diff logic from loadFromServer so rollback also surfaces
+    // cleanup for cards that vanish as a result of the rollback.
+    const newIndex = buildCardIndex(state.topics);
+    for (const [ankiId, info] of oldCardIndex) {
+      if (!newIndex.has(ankiId)) recordTombstoneInfo(info);
+    }
     // Force-save immediately (no dirty check, use current baseSha)
     const saveR = await api("/api/data", {
       method: "POST",
