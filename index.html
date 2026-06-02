@@ -220,6 +220,20 @@
   .toast.ok { border-color: var(--ok); color: var(--ok); }
   .toast.warn { border-color: var(--warn); color: var(--warn); }
 
+  #historyDlg { max-width: 600px; }
+  #historyDlg h3 { margin: 0 0 4px; }
+  .history-entry {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .history-entry.current { border-color: var(--ok); }
+  .history-entry .he-info { flex: 1; min-width: 0; }
+  .history-entry .he-date { font-size: 11px; color: var(--muted); }
+  .history-entry .he-msg  { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-entry .he-author { font-size: 11px; color: var(--accent); }
+  .history-entry .he-current { font-size: 11px; color: var(--ok); font-weight: 600; }
+
   .loading-overlay {
     position: fixed; inset: 0;
     background: rgba(15, 23, 42, 0.6);
@@ -240,6 +254,7 @@
   <h1>BWL Klausurvorbereitung</h1>
   <div class="toolbar">
     <span class="status-pill" id="statusPill">…</span>
+    <button class="ghost small" id="btnHistory" title="Versionen / Rollback">⏱ Versionen</button>
     <button class="ghost small" id="btnReload" title="Neu laden">↻</button>
     <button class="ghost small" id="btnDiscard" style="display:none">Verwerfen</button>
     <button class="primary save-btn" id="btnSave"><span class="dot"></span><span id="saveLabel">Gespeichert</span></button>
@@ -266,6 +281,14 @@
     <div class="ludolph" id="ludolph"></div>
   </section>
 </main>
+
+<dialog id="historyDlg">
+  <h3>Versionen</h3>
+  <div id="historyList" style="margin:14px 0; display:flex; flex-direction:column; gap:6px; max-height:420px; overflow-y:auto;"></div>
+  <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+    <button id="closeHistory">Schließen</button>
+  </div>
+</dialog>
 
 <input type="file" id="filePicker" style="display:none">
 <div class="toast" id="toast"></div>
@@ -687,6 +710,81 @@ function renderLudolph() {
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
 
 // ============================================================
+//  Version history + rollback
+// ============================================================
+
+async function openHistory() {
+  const dlg = $("#historyDlg");
+  const list = $("#historyList");
+  list.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:8px 0">Lade Versionen…</div>`;
+  dlg.showModal();
+  try {
+    const r = await api("/api/history?limit=30");
+    const { commits } = await r.json();
+    list.innerHTML = "";
+    if (!commits.length) {
+      list.innerHTML = `<div style="color:var(--muted);font-size:13px">Keine Versionen gefunden.</div>`;
+      return;
+    }
+    commits.forEach((c, idx) => {
+      const isCurrent = c.sha === baseSha;
+      const date = new Date(c.date).toLocaleString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+      const entry = document.createElement("div");
+      entry.className = "history-entry" + (isCurrent ? " current" : "");
+      entry.innerHTML = `
+        <div class="he-info">
+          <div class="he-msg">${escapeText(c.message)}</div>
+          <div class="he-date">${date} · <span class="he-author">${escapeText(c.author)}</span>${isCurrent ? ' · <span class="he-current">✓ Aktuell</span>' : ""}</div>
+        </div>
+        ${!isCurrent ? `<button class="small danger" data-sha="${escapeAttr(c.sha)}">Wiederherstellen</button>` : ""}
+      `;
+      if (!isCurrent) {
+        entry.querySelector("button").addEventListener("click", async () => {
+          if (!confirm(`Auf diesen Stand zurückrollen?\n\n${c.message}\n(${date})\n\nAktuelle ungespeicherte Änderungen gehen verloren.`)) return;
+          dlg.close();
+          await rollbackTo(c.sha, c.message);
+        });
+      }
+      list.appendChild(entry);
+    });
+  } catch (e) {
+    list.innerHTML = `<div style="color:var(--danger);font-size:13px">Fehler: ${escapeText(e.message)}</div>`;
+  }
+}
+
+async function rollbackTo(sha, label) {
+  showLoading("Stelle wieder her…");
+  try {
+    // Load state from that commit
+    const r = await api(`/api/history?sha=${encodeURIComponent(sha)}`);
+    const { state: oldState } = await r.json();
+    // Apply and save as new commit
+    state.topics = Array.isArray(oldState.topics) ? oldState.topics : [];
+    state.ludolph = Array.isArray(oldState.ludolph) ? oldState.ludolph : [];
+    ensureIds();
+    // Force-save immediately (no dirty check, use current baseSha)
+    const saveR = await api("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state, expectedSha: baseSha, fileShas: [] })
+    });
+    const json = await saveR.json();
+    baseSha = json.sha;
+    pendingUploads.clear();
+    dirty = false;
+    updateSaveButton();
+    await loadRepoFiles();
+    render();
+    setStatus("ok", "Live");
+    toast(`Wiederhergestellt ✓`, "ok");
+  } catch (e) {
+    toast("Rollback fehlgeschlagen: " + e.message, "err");
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
 //  Reload
 // ============================================================
 
@@ -719,6 +817,8 @@ async function reload() {
 $("#btnSave").addEventListener("click", save);
 $("#btnDiscard").addEventListener("click", reload);
 $("#btnReload").addEventListener("click", reload);
+$("#btnHistory").addEventListener("click", openHistory);
+$("#closeHistory").addEventListener("click", () => $("#historyDlg").close());
 
 $("#btnAddTopic").addEventListener("click", addTopicFromInput);
 $("#newTopicInput").addEventListener("keydown", e => { if (e.key === "Enter") addTopicFromInput(); });

@@ -41,8 +41,9 @@ const branch   = () => BRANCH;
 
 async function getRefSha()   { return (await gh(`${repoBase()}/git/refs/heads/${BRANCH}`)).object.sha; }
 async function getCommit(sha){ return gh(`${repoBase()}/git/commits/${sha}`); }
-async function getContent(p) {
-  try { return await gh(`${repoBase()}/contents/${encodeURI(p)}?ref=${encodeURIComponent(BRANCH)}`); }
+async function getContent(p, ref) {
+  const r = ref || BRANCH;
+  try { return await gh(`${repoBase()}/contents/${encodeURI(p)}?ref=${encodeURIComponent(r)}`); }
   catch (e) { if (e.status === 404) return null; throw e; }
 }
 async function getTree()     { return gh(`${repoBase()}/git/trees/${BRANCH}?recursive=1`); }
@@ -85,3 +86,4 @@ module.exports = {
   createBlob, createTree, createCommit, updateRef,
   readJson, sendJson, sendError, branch, repoBase
 };
+
