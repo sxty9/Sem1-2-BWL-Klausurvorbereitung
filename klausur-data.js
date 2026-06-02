@@ -17,7 +17,7 @@ window.KLAUSUR_DATA = {
       "cards": [
         {
           "id": "6pgplr4jsymk",
-          "front": "ddsdsdsdssdsdsdsdsds",
+          "front": "ddsdsdsdssdsdsdsdsdsdfdfd",
           "back": "dd"
         },
         {
@@ -432,6 +432,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T16:37:59.407Z"
+    "lastSaved": "2026-06-02T16:38:04.875Z"
   }
 };
