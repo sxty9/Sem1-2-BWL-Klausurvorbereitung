@@ -13,7 +13,8 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "u3cjti8e3rto"
+      "id": "u3cjti8e3rto",
+      "cards": []
     },
     {
       "title": "SWOT-Analyse",
@@ -27,7 +28,8 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "imc4ee9j3rto"
+      "id": "imc4ee9j3rto",
+      "cards": []
     },
     {
       "title": "Nutzwertanalyse",
@@ -41,14 +43,16 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "jsgiw7sz3rto"
+      "id": "jsgiw7sz3rto",
+      "cards": []
     },
     {
       "title": "Rechtsformen",
       "location": "Satz 1, S. 109",
       "notes": "",
       "attachments": [],
-      "id": "cijrjc8g3rto"
+      "id": "cijrjc8g3rto",
+      "cards": []
     },
     {
       "title": "Unternehmensverbund",
@@ -62,7 +66,8 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "4a9xz22h3rto"
+      "id": "4a9xz22h3rto",
+      "cards": []
     },
     {
       "title": "Due Diligence",
@@ -76,21 +81,24 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "wpo1gav23rto"
+      "id": "wpo1gav23rto",
+      "cards": []
     },
     {
       "title": "Standardmodell Management",
       "location": "Satz 2, S. 10",
       "notes": "",
       "attachments": [],
-      "id": "axftssp23rto"
+      "id": "axftssp23rto",
+      "cards": []
     },
     {
       "title": "Portfoliomethodik / BCG-Matrix",
       "location": "Satz 2, S. 46",
       "notes": "",
       "attachments": [],
-      "id": "jmy4y2j23rto"
+      "id": "jmy4y2j23rto",
+      "cards": []
     },
     {
       "title": "Kennziffern / Bilanzanalyse",
@@ -104,21 +112,24 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "z7qnxu0n3rto"
+      "id": "z7qnxu0n3rto",
+      "cards": []
     },
     {
       "title": "Balanced Scorecard",
       "location": "Satz 2, S. 87",
       "notes": "",
       "attachments": [],
-      "id": "bd90u8is3rto"
+      "id": "bd90u8is3rto",
+      "cards": []
     },
     {
       "title": "XY Theory",
       "location": "Satz 2, S. 177",
       "notes": "",
       "attachments": [],
-      "id": "lnwrrgeu3rto"
+      "id": "lnwrrgeu3rto",
+      "cards": []
     },
     {
       "title": "Blue Ocean",
@@ -132,14 +143,16 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "id": "j2jbktkc3rto"
+      "id": "j2jbktkc3rto",
+      "cards": []
     },
     {
       "title": "Herzberg + Maslow",
       "location": "Satz 2, S. 112",
       "notes": "",
       "attachments": [],
-      "id": "typl0gob3rto"
+      "id": "typl0gob3rto",
+      "cards": []
     },
     {
       "id": "zoxu21n194er",
@@ -160,7 +173,8 @@ window.KLAUSUR_DATA = {
           "source": "repo"
         }
       ],
-      "notesHeight": "102px"
+      "notesHeight": "102px",
+      "cards": []
     }
   ],
   "ludolph": [
@@ -206,10 +220,11 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "dgd6x4ef710x",
-      "text": "Management ist ein totes Pferd"
+      "text": "Management ist ein totes Pferd.",
+      "height": "2px"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T12:01:35.566Z"
+    "lastSaved": "2026-06-02T12:21:53.373Z"
   }
 };
