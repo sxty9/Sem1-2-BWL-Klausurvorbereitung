@@ -14,13 +14,7 @@ window.KLAUSUR_DATA = {
         }
       ],
       "id": "u3cjti8e3rto",
-      "cards": [
-        {
-          "id": "fwadqvxpwewd",
-          "front": "test",
-          "back": "test antw"
-        }
-      ]
+      "cards": []
     },
     {
       "title": "SWOT-Analyse",
@@ -442,6 +436,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T15:09:40.511Z"
+    "lastSaved": "2026-06-02T15:10:00.492Z"
   }
 };
