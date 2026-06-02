@@ -242,7 +242,6 @@
   }
   .anki-cleanup .cleanup-info { font-size: 12px; color: var(--warn); }
   .anki-cleanup .cleanup-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-  #globalCleanup { border: 1px solid var(--warn); border-radius: 10px; margin-top: 10px; }
   .anki-student {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--muted);
@@ -260,6 +259,62 @@
     flex-shrink: 0;
   }
   .anki-badge.is-empty { background: transparent; border: 1px dashed var(--border); color: var(--muted); }
+
+  /* Sync banner — sticky just below the header, no scrolling required. */
+  #syncBanner {
+    display: none;
+    position: sticky; top: 60px; z-index: 9;
+    margin: 0; padding: 10px 22px;
+    background: rgba(251,191,36,.12); border-bottom: 1px solid var(--warn);
+    color: var(--warn); font-size: 13px;
+    align-items: center; justify-content: space-between; gap: 12px;
+    cursor: pointer;
+  }
+  #syncBanner.show { display: flex; }
+  #syncBanner:hover { background: rgba(251,191,36,.18); }
+  #syncBanner .sb-text b { color: var(--text); }
+  #syncBanner .sb-cta {
+    background: var(--warn); color: #0f172a; font-weight: 700;
+    padding: 5px 12px; border-radius: 999px; border: none;
+    font-size: 12px; cursor: pointer; flex-shrink: 0;
+  }
+
+  /* Sync dialog — popup that auto-opens on new pending changes. */
+  #syncDlg { max-width: 640px; }
+  #syncDlg h3 { margin: 0 0 6px; }
+  #syncDlg .sd-sub { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  .sync-section { margin-top: 16px; }
+  .sync-section:first-child { margin-top: 0; }
+  .sync-section h4 {
+    margin: 0 0 8px; font-size: 12px; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--muted);
+  }
+  .sync-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+  .sync-topic {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .sync-topic .st-name { font-weight: 600; font-size: 13px; }
+  .sync-topic .st-counts { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sync-topic .st-counts .added  { color: var(--ok); }
+  .sync-topic .st-counts .changed { color: var(--accent); }
+  .sync-topic .st-counts .removed { color: var(--danger); }
+  .sync-tombstones {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    max-height: 200px; overflow-y: auto;
+  }
+  .sync-tombstones .tt-row {
+    font-size: 12px; padding: 4px 0;
+    border-bottom: 1px dashed rgba(255,255,255,.05);
+  }
+  .sync-tombstones .tt-row:last-child { border-bottom: none; }
+  .sync-tombstones .tt-topic { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+  .sync-actions {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
+  }
 
   .add-row {
     padding: 14px 18px;
@@ -369,6 +424,13 @@
   </div>
 </header>
 
+<!-- Sticky sync banner: surfaces "Anki ist out-of-sync" right under the header,
+     no scrolling required. Click opens #syncDlg for details and actions. -->
+<div id="syncBanner" role="button" tabindex="0" aria-label="Anki-Status anzeigen">
+  <span class="sb-text" id="syncBannerText">…</span>
+  <button class="sb-cta" id="syncBannerOpen">Details</button>
+</div>
+
 <main>
   <section class="panel">
     <div class="head">
@@ -382,14 +444,10 @@
     <div class="add-row" style="justify-content:center">
       <button id="btnExportAll">Alle Karteikarten exportieren (.apkg)</button>
     </div>
-    <div class="anki-cleanup" id="globalCleanup" style="display:none">
-      <span class="cleanup-info" id="globalCleanupInfo"></span>
-      <div class="cleanup-actions">
-        <button class="small ghost" id="globalCleanupCopy" title="Liste der gelöschten Karten kopieren">Liste kopieren</button>
-        <button class="small ghost" id="globalCleanupExport" title="Gelöschte Karten als separates .apkg (zum manuellen Entfernen)">Cleanup-.apkg</button>
-        <button class="small ghost" id="globalCleanupClear" title="Tombstones entfernen (erst nachdem du in Anki aufgeräumt hast)">Erledigt</button>
-      </div>
-    </div>
+<!-- The former bottom #globalCleanup banner has been replaced by the sticky
+     top #syncBanner + #syncDlg popup — visible without scrolling and the only
+     place that surfaces "Anki ist nicht aktuell" state app-wide. -->
+
     <div class="anki-student" id="ankiStudent">
       <span class="student-info">
         Anki-Profil: <b id="studentNameLabel">–</b>
@@ -442,6 +500,17 @@
   <div id="historyList" style="margin:14px 0; display:flex; flex-direction:column; gap:6px; max-height:420px; overflow-y:auto;"></div>
   <div style="display:flex; justify-content:flex-end; margin-top:8px;">
     <button id="closeHistory">Schließen</button>
+  </div>
+</dialog>
+
+<!-- Sync dialog — central place to act on out-of-sync Anki state. Auto-opens
+     once per new change-set; can also be reopened from the top banner. -->
+<dialog id="syncDlg">
+  <h3>Anki ist nicht aktuell</h3>
+  <div class="sd-sub" id="syncSub">Seit deinem letzten Export haben sich Karten verändert.</div>
+  <div id="syncBody"></div>
+  <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px; flex-wrap:wrap;">
+    <button id="syncClose">Später</button>
   </div>
 </dialog>
 
@@ -506,18 +575,55 @@ function setStudentName(name) {
   try { localStorage.setItem(STUDENT_NAME_KEY, name || ""); } catch (e) {}
 }
 // Load this student's local Anki store. Falls back to an empty store.
+// Schema:
+//   exported:        ankiIds this student exported at least once
+//   deletedCards:    tombstones for cards that vanished while exported
+//   cardSnapshots:   { ankiId → { hash, topicId, topicTitle, front, back } }
+//                    Captures the content of every exported card at the moment
+//                    of export. Used to detect "topic needs re-export" when
+//                    server-side content drifts away from what's in Anki.
+//   lastSyncHash:    fingerprint of the last sync-state we showed the user as
+//                    a popup. Prevents re-popping the same popup over and over.
 function loadAnkiLocal() {
   const id = getStudentId();
-  let store = { exported: [], deletedCards: [] };
+  let store = { exported: [], deletedCards: [], cardSnapshots: {}, lastSyncHash: "" };
   try {
     const raw = localStorage.getItem(ANKI_LOCAL_PREFIX + id);
     if (raw) {
       const parsed = JSON.parse(raw);
       store.exported = Array.isArray(parsed.exported) ? parsed.exported : [];
       store.deletedCards = Array.isArray(parsed.deletedCards) ? parsed.deletedCards : [];
+      store.cardSnapshots = (parsed.cardSnapshots && typeof parsed.cardSnapshots === "object") ? parsed.cardSnapshots : {};
+      store.lastSyncHash = typeof parsed.lastSyncHash === "string" ? parsed.lastSyncHash : "";
     }
   } catch (e) {}
   return store;
+}
+
+// Stable per-card content fingerprint. Two cards have the same hash iff their
+// front+back text is identical. Used to detect content edits since export.
+function cardContentHash(front, back) {
+  return (front || "") + "\x1f" + (back || "");
+}
+
+// Persist a snapshot of the cards a student just exported, so future loads can
+// detect drift. Called from every export pathway except the cleanup-.apkg (which
+// re-emits already-deleted cards — those aren't a "real" export).
+function snapshotExport(topic, cards) {
+  if (!topic || !topic.id) return;
+  const store = loadAnkiLocal();
+  if (!store.cardSnapshots) store.cardSnapshots = {};
+  for (const c of (cards || [])) {
+    if (!c || !c.id) continue;
+    store.cardSnapshots[c.id] = {
+      hash: cardContentHash(c.front, c.back),
+      topicId: topic.id,
+      topicTitle: topic.title || "Unbenannt",
+      front: c.front || "",
+      back: c.back || ""
+    };
+  }
+  saveAnkiLocal(store);
 }
 function saveAnkiLocal(store) {
   const id = getStudentId();
@@ -833,7 +939,7 @@ async function save() {
 function render() {
   renderTopics();
   renderLudolph();
-  renderGlobalCleanup();
+  refreshSync();
 }
 
 function renderTopics() {
@@ -1137,7 +1243,7 @@ function renderAnkiCards() {
       item.querySelector(".rm").addEventListener("click", () => {
         recordTombstone(t, card);
         cards.splice(ci, 1);
-        markDirty(); renderAnkiCards(); render(); renderGlobalCleanup();
+        markDirty(); renderAnkiCards(); render(); refreshSync();
       });
 
       const drag = item.querySelector(".drag");
@@ -1172,9 +1278,9 @@ function renderAnkiCards() {
   renderAnkiCleanup();
 }
 
-// Show the deletion-cleanup bar with the count of tombstoned cards. Anki cannot
-// auto-remove notes that are merely missing from an imported deck package, so we
-// surface the deleted cards here and let the user copy/export a cleanup list.
+// Dialog-internal cleanup banner (inside the per-topic Anki dialog). Unchanged
+// in behaviour; kept compact since the main visibility now comes from the
+// sticky top sync banner + popup.
 function renderAnkiCleanup() {
   const bar = $("#ankiCleanup");
   if (!bar) return;
@@ -1182,40 +1288,230 @@ function renderAnkiCleanup() {
   if (!n) { bar.style.display = "none"; return; }
   bar.style.display = "flex";
   $("#ankiCleanupInfo").textContent =
-    `${n} gelöschte Karte${n !== 1 ? "n" : ""} – in Anki manuell entfernen (Anki löscht beim Import nicht automatisch).`;
+    `${n} gelöschte Karte${n !== 1 ? "n" : ""} – in Anki manuell entfernen.`;
 }
 
-// Global cleanup bar shown near "Alle Karteikarten exportieren", so the
-// all-at-once export flow also surfaces deleted-card cleanup (not only the
-// per-topic Anki dialog). Reflects the same per-student local tombstones.
-function renderGlobalCleanup() {
-  const bar = $("#globalCleanup");
-  if (!bar) return;
-  const n = loadAnkiLocal().deletedCards.length;
-  if (!n) { bar.style.display = "none"; return; }
-  bar.style.display = "flex";
-  $("#globalCleanupInfo").textContent =
-    `${n} gelöschte Karte${n !== 1 ? "n" : ""} aus deinem Anki-Export – beim nächsten Import nicht automatisch entfernt. Hier aufräumen:`;
+// ============================================================
+//  Sync state: re-export needs + tombstones, surfaced via banner + popup
+// ============================================================
+
+// Compute everything that's out of sync for the current student between Anki
+// and the in-memory state. Returns:
+//   { topicsNeedingExport: [...], tombstones: [...], hash: "fingerprint" }
+function computePendingChanges() {
+  const store = loadAnkiLocal();
+  const snapshots = store.cardSnapshots || {};
+  const exportedSet = new Set(store.exported || []);
+
+  // Group snapshots by topicId so we know which topics the student has touched.
+  const exportedTopicIds = new Set();
+  for (const ankiId of Object.keys(snapshots)) {
+    const s = snapshots[ankiId];
+    if (s && s.topicId) exportedTopicIds.add(s.topicId);
+  }
+  // Some students may have exported before snapshots existed → fall back to
+  // deriving the topic from current state for any ankiId in `exported` whose
+  // snapshot is missing.
+  for (const t of (state.topics || [])) {
+    for (const c of (t.cards || [])) {
+      if (exportedSet.has(ankiCardKey(t, c))) exportedTopicIds.add(t.id);
+    }
+  }
+
+  // Per-topic diff for any topic the student has ever exported anything from.
+  const topicsNeedingExport = [];
+  for (const t of (state.topics || [])) {
+    if (!exportedTopicIds.has(t.id)) continue;
+    const added = [];   // new cards (no snapshot yet)
+    const changed = []; // existing snapshot, content differs
+    for (const c of (t.cards || [])) {
+      if (!c || !(c.front || c.back)) continue;
+      const ankiId = ankiCardKey(t, c);
+      const snap = snapshots[ankiId];
+      const curHash = cardContentHash(c.front, c.back);
+      if (!snap) {
+        // No snapshot for this card yet. Only count as "added" if the student
+        // has exported anything from this topic — otherwise this is just the
+        // initial population and not relevant for re-export.
+        if (exportedTopicIds.has(t.id)) added.push({ ankiId, front: c.front || "" });
+      } else if (snap.hash !== curHash) {
+        changed.push({ ankiId, front: c.front || "" });
+      }
+    }
+    // Cards that existed in our last export of this topic but are gone now.
+    const removed = [];
+    const curAnkiIds = new Set((t.cards || []).map(c => ankiCardKey(t, c)));
+    for (const [ankiId, s] of Object.entries(snapshots)) {
+      if (s && s.topicId === t.id && !curAnkiIds.has(ankiId)) {
+        removed.push({ ankiId, front: s.front || "" });
+      }
+    }
+    if (added.length || changed.length || removed.length) {
+      topicsNeedingExport.push({
+        topicId: t.id,
+        topicTitle: t.title || "Unbenannt",
+        added, changed, removed
+      });
+    }
+  }
+
+  // Tombstones are surfaced as-is — they need manual Anki cleanup.
+  const tombstones = (store.deletedCards || []).slice();
+
+  // Hash so we can detect "is this a NEW state we haven't notified about yet".
+  const sig = JSON.stringify({
+    t: topicsNeedingExport.map(x => ({ id: x.topicId, a: x.added.length, c: x.changed.length, r: x.removed.length })),
+    d: tombstones.map(d => d.ankiId).sort()
+  });
+  return { topicsNeedingExport, tombstones, hash: sig };
 }
 
-// Refresh every place that shows the cleanup state.
-function renderAllCleanup() { renderAnkiCleanup(); renderGlobalCleanup(); }
+// Update the sticky top banner with the current sync state. Pure UI — does not
+// auto-open the dialog. Call after any local mutation that could change the
+// pending set (export, delete, mark-done, …).
+function refreshSync() {
+  const pending = computePendingChanges();
+  const tEl = $("#syncBannerText");
+  const banner = $("#syncBanner");
+  const total = pending.topicsNeedingExport.length + (pending.tombstones.length ? 1 : 0);
+  if (!total) { banner.classList.remove("show"); return; }
 
-// Build a human-readable cleanup list of this student's tombstoned cards.
+  const parts = [];
+  if (pending.topicsNeedingExport.length) {
+    parts.push(`<b>${pending.topicsNeedingExport.length}</b> Thema${pending.topicsNeedingExport.length !== 1 ? "s" : ""} mit Updates`);
+  }
+  if (pending.tombstones.length) {
+    parts.push(`<b>${pending.tombstones.length}</b> Karte${pending.tombstones.length !== 1 ? "n" : ""} zum Aufräumen in Anki`);
+  }
+  tEl.innerHTML = "🔔 Anki ist nicht aktuell — " + parts.join(" · ");
+  banner.classList.add("show");
+
+  // Also keep the dialog-internal cleanup bar in sync (visible inside the
+  // per-topic Anki dialog).
+  renderAnkiCleanup();
+}
+
+// Auto-open the sync popup if the current pending fingerprint is new. The
+// fingerprint is persisted per-student so the popup never re-appears for the
+// same set of changes (until the user re-exports or marks-done, which moves
+// the fingerprint forward).
+function maybeShowSyncDlg() {
+  const pending = computePendingChanges();
+  refreshSync();
+  if (!pending.topicsNeedingExport.length && !pending.tombstones.length) {
+    // Nothing pending → "everything is fine" is itself a state. Persist the
+    // empty-hash so a future change reliably triggers a fresh popup.
+    const store = loadAnkiLocal();
+    if (store.lastSyncHash !== pending.hash) {
+      store.lastSyncHash = pending.hash;
+      saveAnkiLocal(store);
+    }
+    return;
+  }
+  const store = loadAnkiLocal();
+  if (store.lastSyncHash === pending.hash) return; // already shown for this state
+  openSyncDlg();
+  store.lastSyncHash = pending.hash;
+  saveAnkiLocal(store);
+}
+
+// Render the sync popup dialog contents and open it. Called from
+// maybeShowSyncDlg (auto) and from the top banner click (manual).
+function openSyncDlg() {
+  const pending = computePendingChanges();
+  const body = $("#syncBody");
+  const sub = $("#syncSub");
+  body.innerHTML = "";
+
+  const total = pending.topicsNeedingExport.length + pending.tombstones.length;
+  sub.textContent = total
+    ? "Die folgenden Updates erfordern Aktionen, damit deine Anki-Sammlung mit der App synchron ist."
+    : "Alles ist auf dem aktuellen Stand.";
+
+  // Section 1 — topics with re-export needed
+  const sec1 = document.createElement("div");
+  sec1.className = "sync-section";
+  sec1.innerHTML = `<h4>Themen mit neuen/geänderten Karten</h4>`;
+  if (!pending.topicsNeedingExport.length) {
+    sec1.insertAdjacentHTML("beforeend", `<div class="sync-empty">Keine.</div>`);
+  } else {
+    for (const t of pending.topicsNeedingExport) {
+      const row = document.createElement("div");
+      row.className = "sync-topic";
+      const counts = [];
+      if (t.added.length)   counts.push(`<span class="added">+${t.added.length} neu</span>`);
+      if (t.changed.length) counts.push(`<span class="changed">~${t.changed.length} geändert</span>`);
+      if (t.removed.length) counts.push(`<span class="removed">-${t.removed.length} entfernt</span>`);
+      row.innerHTML = `
+        <div>
+          <div class="st-name">${escapeText(t.topicTitle)}</div>
+          <div class="st-counts">${counts.join(" · ")}</div>
+        </div>
+        <button class="small primary" data-topic-id="${escapeAttr(t.topicId)}">Re-Exportieren</button>
+      `;
+      row.querySelector("button").addEventListener("click", async () => {
+        const topic = (state.topics || []).find(x => x.id === t.topicId);
+        if (!topic) { toast("Thema nicht gefunden", "err"); return; }
+        await exportAnki(topic);
+        // Re-render the popup so this topic's row disappears.
+        openSyncDlg();
+      });
+      sec1.appendChild(row);
+    }
+  }
+  body.appendChild(sec1);
+
+  // Section 2 — tombstones (cards to remove manually in Anki)
+  const sec2 = document.createElement("div");
+  sec2.className = "sync-section";
+  sec2.innerHTML = `<h4>Karten zum Aufräumen in Anki</h4>`;
+  if (!pending.tombstones.length) {
+    sec2.insertAdjacentHTML("beforeend", `<div class="sync-empty">Keine.</div>`);
+  } else {
+    const list = document.createElement("div");
+    list.className = "sync-tombstones";
+    pending.tombstones.forEach((d, i) => {
+      const row = document.createElement("div");
+      row.className = "tt-row";
+      const front = (d.front || "").replace(/\s+/g, " ").trim() || "(leer)";
+      row.innerHTML = `<span class="tt-topic">${escapeText(d.topicTitle || "Unbenannt")}</span> · ${escapeText(front)}`;
+      list.appendChild(row);
+    });
+    sec2.appendChild(list);
+
+    const actions = document.createElement("div");
+    actions.className = "sync-actions";
+    actions.innerHTML = `
+      <button class="small" id="syncCopy">Liste kopieren</button>
+      <button class="small" id="syncApkg">Cleanup-.apkg</button>
+      <button class="small ghost" id="syncDone">Erledigt (Karten in Anki gelöscht)</button>
+    `;
+    actions.querySelector("#syncCopy").addEventListener("click", cleanupCopy);
+    actions.querySelector("#syncApkg").addEventListener("click", cleanupExportApkg);
+    actions.querySelector("#syncDone").addEventListener("click", () => {
+      cleanupClear();
+      // Re-render the dialog so the now-empty tombstones section disappears.
+      if ($("#syncDlg").open) openSyncDlg();
+    });
+    sec2.appendChild(actions);
+  }
+  body.appendChild(sec2);
+
+  $("#syncDlg").showModal();
+}
+
+// Build a SIMPLE cleanup list — just topic + front side, so the student can
+// quickly search for those titles in Anki (Anki search matches partial front
+// text). No GUIDs, no dates, no back side.
 async function buildCleanupText() {
   const store = await resolveGuids();
   const lines = [
-    "Anki-Aufräumliste — diese Karten wurden in der App gelöscht.",
-    "Anki entfernt sie NICHT automatisch beim Import. So entfernst du sie:",
-    "1) Öffne Anki  2) Suche oben nach  tag:bwl-klausur",
-    "3) Lösche die unten aufgeführten Karten (z. B. per Vorderseiten-Text oder GUID).",
+    "Anki-Aufräumliste — diese Karten in Anki suchen und löschen:",
     ""
   ];
   store.deletedCards.forEach((d, i) => {
     const front = (d.front || "").replace(/\s+/g, " ").trim();
-    const back = (d.back || "").replace(/\s+/g, " ").trim();
-    lines.push(`${i + 1}. [${d.topicTitle}] ${front || "(leer)"}  →  ${back || "(leer)"}`);
-    lines.push(`   guid: ${d.guid}   gelöscht: ${d.deletedAt}`);
+    lines.push(`${i + 1}. [${d.topicTitle || "Unbenannt"}] ${front || "(leer)"}`);
   });
   return lines.join("\n");
 }
@@ -1249,7 +1545,7 @@ function cleanupClear() {
   if (!confirm(`${n} Tombstone(s) entfernen?\n\nNur bestätigen, wenn du die Karten in Anki bereits gelöscht hast. Diese Liste lässt sich danach nicht wiederherstellen.`)) return;
   store.deletedCards = [];
   saveAnkiLocal(store);
-  renderAllCleanup();
+  refreshSync();
   toast("Aufräumliste geleert ✓", "ok");
 }
 
@@ -1301,16 +1597,19 @@ async function exportAnki(topic) {
   // Export-awareness: remember (for this student) which cards reached Anki, so a
   // later deletion of one of them produces a cleanup tombstone.
   markExported(cards.map(c => c.id));
+  // Snapshot card content at export time → enables drift detection on next pull.
+  snapshotExport(topic, cards);
   // deckId is derived from topic.id so renaming the topic updates the existing
   // Anki deck name instead of producing a duplicate deck on re-import.
   await downloadApkg({ deckId: "topic:" + topic.id, deckName, cards });
-  renderAnkiCleanup();
+  refreshSync();
 }
 
 async function exportAllAnki() {
   const decks = state.topics
     .filter(t => t.cards && t.cards.length && t.cards.some(c => c.front && c.front.trim()))
     .map(t => ({
+      topic: t, // kept on the client side for snapshotExport, stripped before fetch
       id: "topic:" + t.id,
       name: "BWL Klausur::" + (t.title || "Unbenannt"),
       cards: t.cards.filter(c => c.front && c.front.trim()).map(c => ({ id: ankiCardKey(t, c), front: c.front, back: c.back || "" }))
@@ -1321,8 +1620,11 @@ async function exportAllAnki() {
   }
   // Export-awareness: mark every exported card across all decks for this student.
   markExported(decks.flatMap(d => d.cards.map(c => c.id)));
-  await downloadApkg({ decks });
-  renderGlobalCleanup();
+  for (const d of decks) snapshotExport(d.topic, d.cards);
+  // Strip the local-only `topic` field before sending to the API.
+  const apiDecks = decks.map(d => ({ id: d.id, name: d.name, cards: d.cards }));
+  await downloadApkg({ decks: apiDecks });
+  refreshSync();
 }
 
 // Split a Spruch into front/back for Anki
@@ -1490,6 +1792,9 @@ async function rollbackTo(sha, label) {
     render();
     setStatus("ok", "Live");
     toast(`Wiederhergestellt ✓`, "ok");
+    // Rollbacks can both delete and "resurrect" cards — surface any resulting
+    // out-of-sync state with the same popup logic as a normal pull.
+    maybeShowSyncDlg();
   } catch (e) {
     toast("Rollback fehlgeschlagen: " + e.message, "err");
   } finally {
@@ -1515,6 +1820,10 @@ async function reload() {
     render();
     setStatus("ok", "Live");
     toast("Neu geladen ✓", "ok");
+    // After a pull, decide whether to surface a popup for any new pending
+    // changes (re-export needs + new tombstones). The fingerprint check inside
+    // maybeShowSyncDlg prevents repeat popups for the same state.
+    maybeShowSyncDlg();
   } catch (e) {
     toast("Laden fehlgeschlagen: " + e.message, "err");
     setStatus("err", "Offline?");
@@ -1535,10 +1844,12 @@ $("#closeHistory").addEventListener("click", () => $("#historyDlg").close());
 $("#btnExportAll").addEventListener("click", exportAllAnki);
 $("#btnExportLudolph").addEventListener("click", exportLudolphAnki);
 
-// Global cleanup bar (same per-student local tombstones as the dialog bar).
-$("#globalCleanupCopy").addEventListener("click", cleanupCopy);
-$("#globalCleanupExport").addEventListener("click", cleanupExportApkg);
-$("#globalCleanupClear").addEventListener("click", cleanupClear);
+// Sync banner + popup wiring. The popup auto-opens after pull when new
+// changes appear; the banner stays sticky as long as anything is pending so
+// the student can re-open the popup at any time without scrolling.
+$("#syncBanner").addEventListener("click", openSyncDlg);
+$("#syncBannerOpen").addEventListener("click", (e) => { e.stopPropagation(); openSyncDlg(); });
+$("#syncClose").addEventListener("click", () => $("#syncDlg").close());
 
 // Student profile (per-browser identity for local Anki state).
 function renderStudentLabel() {
@@ -1587,7 +1898,7 @@ window.addEventListener("keydown", e => {
 (async function init() {
   getStudentId();       // ensure a per-browser student id exists
   renderStudentLabel(); // show the local Anki profile name
-  renderGlobalCleanup();// show any pending per-student cleanup immediately
+  refreshSync();// show any pending per-student cleanup immediately
   // Quick first paint from cache
   try {
     const cached = JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY) || "null");
@@ -1606,6 +1917,9 @@ window.addEventListener("keydown", e => {
     render();
     updateSaveButton();
     setStatus("ok", "Live");
+    // First-load sync notification: pop the dialog if there are new pending
+    // changes since the student last acknowledged a sync state on this device.
+    maybeShowSyncDlg();
   } catch (e) {
     console.error(e);
     setStatus("err", "Offline?");
