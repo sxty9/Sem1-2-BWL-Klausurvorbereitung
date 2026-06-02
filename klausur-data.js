@@ -91,10 +91,22 @@ window.KLAUSUR_DATA = {
       "notes": "",
       "attachments": [],
       "id": "typl0gob3rto"
+    },
+    {
+      "id": "zoxu21n194er",
+      "title": "Unternehmenssteuern",
+      "location": "",
+      "notes": "",
+      "attachments": []
     }
   ],
-  "ludolph": [],
+  "ludolph": [
+    {
+      "id": "u1vrzj8y8h49",
+      "text": "Der Graben ist drei Meter tief und trotzdem ist die Kuh ersoffen\n"
+    }
+  ],
   "_meta": {
-    "lastSaved": "2026-06-02T09:28:26.991Z"
+    "lastSaved": "2026-06-02T10:17:43.542Z"
   }
 };
