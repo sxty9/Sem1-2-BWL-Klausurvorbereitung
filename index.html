@@ -154,51 +154,54 @@
   .attach-menu-popup .label { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .5px; }
   .topic .actions { margin-left: auto; display: flex; gap: 6px; }
 
-  /* Anki cards section */
-  .cards-section {
-    border: 1px solid var(--border); border-radius: 8px;
-    overflow: hidden;
+  /* Anki cards dialog */
+  #ankiDlg { max-width: 720px; width: 96%; padding: 0; overflow: hidden; }
+  #ankiDlg .anki-head {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
   }
-  .cards-toggle {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
-    background: var(--panel-2); color: var(--muted);
-    border: none; border-radius: 0; padding: 8px 12px;
-    font-size: 12px; cursor: pointer; gap: 8px;
-  }
-  .cards-toggle:hover { color: var(--text); background: #2d3d52; }
-  .cards-toggle .badge {
-    background: var(--accent); color: #0f172a; font-weight: 700;
-    padding: 1px 6px; border-radius: 999px; font-size: 10px; min-width: 18px; text-align: center;
-  }
-  .cards-toggle .badge.empty { background: transparent; border: 1px dashed var(--border); color: var(--muted); }
-  .cards-toggle .arrow { transition: transform .15s; }
-  .cards-toggle.open .arrow { transform: rotate(90deg); }
-  .cards-body { display: none; }
-  .cards-body.open { display: block; }
+  #ankiDlg .anki-head h3 { margin: 0; font-size: 15px; }
+  #ankiDlg .anki-head .sub { color: var(--muted); font-size: 12px; }
+  .anki-cards { max-height: 55vh; overflow-y: auto; }
   .card-row {
     display: grid; grid-template-columns: 1fr 1fr auto;
-    gap: 6px; padding: 8px 12px;
-    border-top: 1px solid var(--border); align-items: start;
+    gap: 8px; padding: 10px 20px;
+    border-bottom: 1px solid var(--border); align-items: start;
   }
-  .card-row input {
-    background: var(--bg); color: var(--text);
+  .card-row:last-child { border-bottom: none; }
+  .card-row input, .card-row textarea {
+    background: var(--panel-2); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
-    padding: 6px 8px; font-size: 12px; outline: none;
-    font-family: inherit;
+    padding: 8px 10px; font-size: 13px; outline: none;
+    font-family: inherit; resize: vertical; min-height: 38px; max-height: 200px;
   }
-  .card-row input:focus { border-color: var(--accent); }
-  .card-row input::placeholder { color: var(--muted); }
+  .card-row input:focus, .card-row textarea:focus { border-color: var(--accent); }
+  .card-row input::placeholder, .card-row textarea::placeholder { color: var(--muted); }
   .card-row .rm {
     background: transparent; border: none; color: var(--muted);
-    cursor: pointer; font-size: 14px; padding: 4px 6px; line-height: 1;
+    cursor: pointer; font-size: 16px; padding: 6px; line-height: 1; margin-top: 4px;
   }
   .card-row .rm:hover { color: var(--danger); }
-  .cards-actions {
-    display: flex; gap: 6px; padding: 8px 12px;
-    border-top: 1px solid var(--border); justify-content: space-between;
-    flex-wrap: wrap;
+  .card-row-header {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 8px; padding: 8px 20px;
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+    border-bottom: 1px solid var(--border);
   }
-  .cards-actions .left { display: flex; gap: 6px; }
+  .card-row-header span:last-child { width: 28px; }
+  .anki-foot {
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap; background: rgba(255,255,255,.02);
+  }
+  .anki-foot .left { display: flex; gap: 8px; align-items: center; }
+  .anki-foot .count { font-size: 12px; color: var(--muted); }
+  .anki-badge {
+    font-size: 10px; font-weight: 700; min-width: 16px; text-align: center;
+    padding: 1px 5px; border-radius: 999px; line-height: 1.4;
+    background: var(--accent); color: #0f172a; vertical-align: middle;
+  }
+  .anki-badge.empty { background: transparent; border: 1px dashed var(--border); color: var(--muted); }
 
   .add-row {
     padding: 14px 18px;
@@ -244,7 +247,7 @@
     background: var(--panel); color: var(--text);
     border: 1px solid var(--border); border-radius: var(--radius);
     box-shadow: var(--shadow);
-    max-width: 520px; width: 92%;
+    max-width: 520px; width: 92%; max-height: 90vh;
     padding: 22px;
   }
   dialog::backdrop { background: rgba(0,0,0,.55); backdrop-filter: blur(2px); }
@@ -326,11 +329,33 @@
   <section class="panel">
     <div class="head">
       <h2>Ludolph Sprüche</h2>
-      <button class="primary small" id="btnAddSpruch">+ Spruch</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="small" id="btnExportLudolph" title="Sprüche als Anki-Karteikarten exportieren">Anki Export</button>
+        <button class="primary small" id="btnAddSpruch">+ Spruch</button>
+      </div>
     </div>
     <div class="ludolph" id="ludolph"></div>
   </section>
 </main>
+
+<dialog id="ankiDlg">
+  <div class="anki-head">
+    <div>
+      <h3 id="ankiTitle">Anki Karteikarten</h3>
+      <div class="sub" id="ankiSub"></div>
+    </div>
+    <button class="ghost small" id="closeAnki">Schließen</button>
+  </div>
+  <div class="card-row-header"><span>Vorderseite</span><span>Rückseite</span><span></span></div>
+  <div class="anki-cards" id="ankiCards"></div>
+  <div class="anki-foot">
+    <div class="left">
+      <button class="small primary" id="ankiAddCard">+ Karte</button>
+      <span class="count" id="ankiCount"></span>
+    </div>
+    <button class="small" id="ankiExport">Exportieren (.apkg)</button>
+  </div>
+</dialog>
 
 <dialog id="historyDlg">
   <h3>Versionen</h3>
@@ -557,6 +582,7 @@ function renderTopics() {
     const el = document.createElement("div");
     el.className = "topic";
     el.dataset.id = t.id;
+    const cardCount = (t.cards || []).length;
     el.innerHTML = `
       <div class="row">
         <span class="drag" title="Ziehen zum Sortieren">⋮⋮</span>
@@ -565,12 +591,12 @@ function renderTopics() {
         <div class="actions">
           <button class="small ghost" data-act="up" title="Hoch">↑</button>
           <button class="small ghost" data-act="down" title="Runter">↓</button>
+          <button class="small ghost" data-act="anki" title="Anki Karteikarten">🗂 <span class="anki-badge ${cardCount ? "" : "empty"}">${cardCount}</span></button>
           <button class="small danger" data-act="del" title="Löschen">✕</button>
         </div>
       </div>
       <textarea class="notes" placeholder="Notizen, Stichpunkte, Formeln…">${escapeText(t.notes || "")}</textarea>
       <div class="attachments" data-attachments></div>
-      <div class="cards-section" data-cards></div>
     `;
     el.querySelector("input.title").addEventListener("input", e => { t.title = e.target.value; markDirty(); });
     el.querySelector("input.loc").addEventListener("input",   e => { t.location = e.target.value; markDirty(); });
@@ -590,6 +616,7 @@ function renderTopics() {
     });
     el.querySelector("[data-act='up']").addEventListener("click", () => moveTopic(idx, -1));
     el.querySelector("[data-act='down']").addEventListener("click", () => moveTopic(idx, +1));
+    el.querySelector("[data-act='anki']").addEventListener("click", () => openAnkiDialog(t));
 
     const drag = el.querySelector(".drag");
     drag.addEventListener("mousedown", () => { el.draggable = true; });
@@ -613,7 +640,6 @@ function renderTopics() {
     });
 
     renderAttachments(el.querySelector("[data-attachments]"), t);
-    renderCards(el.querySelector("[data-cards]"), t);
     topicsEl.appendChild(el);
   });
 }
@@ -782,103 +808,70 @@ function renderLudolph() {
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
 
 // ============================================================
-//  Anki cards
+//  Anki cards dialog
 // ============================================================
 
-// Track which topics have their cards section open
-const openCardSections = new Set();
+let ankiTopic = null; // currently open topic in dialog
 
-function renderCards(container, topic) {
+function openAnkiDialog(topic) {
+  ankiTopic = topic;
   if (!Array.isArray(topic.cards)) topic.cards = [];
-  const cards = topic.cards;
-  const isOpen = openCardSections.has(topic.id);
-  const count = cards.length;
+  $("#ankiTitle").textContent = "Anki — " + (topic.title || "Unbenannt");
+  $("#ankiSub").textContent = topic.location || "";
+  renderAnkiCards();
+  $("#ankiDlg").showModal();
+}
 
+function renderAnkiCards() {
+  const t = ankiTopic;
+  if (!t) return;
+  const cards = t.cards;
+  const container = $("#ankiCards");
   container.innerHTML = "";
 
-  // Toggle button
-  const toggle = document.createElement("button");
-  toggle.className = "cards-toggle" + (isOpen ? " open" : "");
-  toggle.innerHTML = `
-    <span><span class="arrow">▶</span> Anki Karteikarten</span>
-    <span class="badge ${count ? "" : "empty"}">${count}</span>
-  `;
-  toggle.addEventListener("click", () => {
-    if (openCardSections.has(topic.id)) openCardSections.delete(topic.id);
-    else openCardSections.add(topic.id);
-    renderCards(container, topic);
-  });
-  container.appendChild(toggle);
-
-  if (!isOpen) return;
-
-  const body = document.createElement("div");
-  body.className = "cards-body open";
-
-  // Existing cards
-  cards.forEach((card, ci) => {
-    const row = document.createElement("div");
-    row.className = "card-row";
-    row.innerHTML = `
-      <input type="text" value="${escapeAttr(card.front || "")}" placeholder="Vorderseite">
-      <input type="text" value="${escapeAttr(card.back || "")}" placeholder="Rückseite">
-      <button class="rm" title="Karte löschen">×</button>
-    `;
-    const [frontInput, backInput] = row.querySelectorAll("input");
-    frontInput.addEventListener("input", e => { card.front = e.target.value; markDirty(); });
-    backInput.addEventListener("input", e => { card.back = e.target.value; markDirty(); });
-    row.querySelector(".rm").addEventListener("click", () => {
-      cards.splice(ci, 1);
-      markDirty();
-      renderCards(container, topic);
+  if (!cards.length) {
+    container.innerHTML = `<div class="empty">Noch keine Karten. Klick auf "+ Karte".</div>`;
+  } else {
+    cards.forEach((card, ci) => {
+      const row = document.createElement("div");
+      row.className = "card-row";
+      row.innerHTML = `
+        <textarea placeholder="Vorderseite" rows="1">${escapeText(card.front || "")}</textarea>
+        <textarea placeholder="Rückseite" rows="1">${escapeText(card.back || "")}</textarea>
+        <button class="rm" title="Karte löschen">×</button>
+      `;
+      const [frontTA, backTA] = row.querySelectorAll("textarea");
+      autosize(frontTA); autosize(backTA);
+      frontTA.addEventListener("input", e => { card.front = e.target.value; autosize(frontTA); markDirty(); });
+      backTA.addEventListener("input", e => { card.back = e.target.value; autosize(backTA); markDirty(); });
+      row.querySelector(".rm").addEventListener("click", () => {
+        cards.splice(ci, 1);
+        markDirty(); renderAnkiCards(); render();
+      });
+      container.appendChild(row);
     });
-    body.appendChild(row);
-  });
-
-  // Add card row
-  const addRow = document.createElement("div");
-  addRow.className = "card-row";
-  addRow.innerHTML = `
-    <input type="text" placeholder="Vorderseite (neue Karte)" data-new-front>
-    <input type="text" placeholder="Rückseite" data-new-back>
-    <button class="small primary" title="Karte hinzufügen">+</button>
-  `;
-  const newFront = addRow.querySelector("[data-new-front]");
-  const newBack  = addRow.querySelector("[data-new-back]");
-  const addCard = () => {
-    const f = newFront.value.trim();
-    const b = newBack.value.trim();
-    if (!f) { newFront.focus(); return; }
-    cards.push({ id: uid(), front: f, back: b });
-    markDirty();
-    renderCards(container, topic);
-    // Focus new front input after re-render
-    setTimeout(() => {
-      const newInputs = container.querySelectorAll("[data-new-front]");
-      if (newInputs.length) newInputs[newInputs.length - 1].focus();
-    }, 0);
-  };
-  addRow.querySelector("button").addEventListener("click", addCard);
-  newFront.addEventListener("keydown", e => { if (e.key === "Tab" && !e.shiftKey) { /* let it go to back field */ } });
-  newBack.addEventListener("keydown", e => { if (e.key === "Enter") addCard(); });
-  body.appendChild(addRow);
-
-  // Actions row
-  const actionsRow = document.createElement("div");
-  actionsRow.className = "cards-actions";
-  actionsRow.innerHTML = `
-    <div class="left">
-      <button class="small" ${!count ? "disabled" : ""}>Exportieren (.apkg)</button>
-    </div>
-    <span style="font-size:11px;color:var(--muted)">${count} Karte${count !== 1 ? "n" : ""}</span>
-  `;
-  if (count) {
-    actionsRow.querySelector("button").addEventListener("click", () => exportAnki(topic));
   }
-  body.appendChild(actionsRow);
-
-  container.appendChild(body);
+  $("#ankiCount").textContent = `${cards.length} Karte${cards.length !== 1 ? "n" : ""}`;
+  $("#ankiExport").disabled = !cards.length;
 }
+
+$("#ankiAddCard").addEventListener("click", () => {
+  if (!ankiTopic) return;
+  ankiTopic.cards.push({ id: uid(), front: "", back: "" });
+  markDirty(); renderAnkiCards(); render();
+  // Focus the new front textarea
+  const rows = $("#ankiCards").querySelectorAll(".card-row");
+  if (rows.length) rows[rows.length - 1].querySelector("textarea").focus();
+});
+
+$("#ankiExport").addEventListener("click", () => {
+  if (ankiTopic) exportAnki(ankiTopic);
+});
+
+$("#closeAnki").addEventListener("click", () => {
+  $("#ankiDlg").close();
+  ankiTopic = null;
+});
 
 async function exportAnki(topic) {
   if (!topic.cards || !topic.cards.length) {
@@ -908,6 +901,60 @@ async function exportAllAnki() {
     return;
   }
   await downloadApkg({ decks });
+}
+
+// Split a Spruch into front/back for Anki
+function splitSpruch(text) {
+  text = (text || "").trim();
+  if (!text) return null;
+  const mid = Math.floor(text.length / 2);
+  // Find all comma positions
+  const commas = [];
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === ",") commas.push(i);
+  }
+  // Pick the comma closest to the middle
+  let splitPos = -1;
+  if (commas.length) {
+    let best = -1, bestDist = Infinity;
+    for (const ci of commas) {
+      const dist = Math.abs(ci - mid);
+      if (dist < bestDist) { bestDist = dist; best = ci; }
+    }
+    // Split after the comma (include comma on the front side)
+    splitPos = best + 1;
+  }
+  // No comma found: split at the word boundary closest to the middle
+  if (splitPos < 0) {
+    const spaces = [];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === " ") spaces.push(i);
+    }
+    if (spaces.length) {
+      let best = -1, bestDist = Infinity;
+      for (const si of spaces) {
+        const dist = Math.abs(si - mid);
+        if (dist < bestDist) { bestDist = dist; best = si; }
+      }
+      splitPos = best;
+    }
+  }
+  // Fallback: just split at the middle
+  if (splitPos < 0) splitPos = mid;
+  const front = text.slice(0, splitPos).trim();
+  const back = text.slice(splitPos).trim();
+  if (!front || !back) return { front: text, back: "..." };
+  return { front: front, back: back };
+}
+
+async function exportLudolphAnki() {
+  const sprueche = (state.ludolph || []).filter(s => s.text && s.text.trim());
+  if (!sprueche.length) {
+    toast("Keine Sprüche zum Exportieren", "warn");
+    return;
+  }
+  const cards = sprueche.map(s => splitSpruch(s.text)).filter(Boolean);
+  await downloadApkg({ deckName: "Ludolph Sprüche", cards });
 }
 
 async function downloadApkg(body) {
@@ -1049,6 +1096,7 @@ $("#btnReload").addEventListener("click", reload);
 $("#btnHistory").addEventListener("click", openHistory);
 $("#closeHistory").addEventListener("click", () => $("#historyDlg").close());
 $("#btnExportAll").addEventListener("click", exportAllAnki);
+$("#btnExportLudolph").addEventListener("click", exportLudolphAnki);
 
 $("#btnAddTopic").addEventListener("click", addTopicFromInput);
 $("#newTopicInput").addEventListener("keydown", e => { if (e.key === "Enter") addTopicFromInput(); });
