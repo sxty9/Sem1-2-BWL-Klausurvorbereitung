@@ -1533,9 +1533,16 @@ function openSyncDlg() {
   body.innerHTML = "";
 
   const total = pending.topicsNeedingExport.length + pending.tombstones.length;
-  sub.textContent = total
-    ? "Die folgenden Updates erfordern Aktionen, damit deine Anki-Sammlung mit der App synchron ist."
-    : "Alles ist auf dem aktuellen Stand.";
+  // If nothing is pending we have nothing to show — close the dialog if it
+  // was open (e.g. user just re-exported the last topic) and don't open it
+  // when called manually with nothing to do. The lastSyncHash is also bumped
+  // via maybeShowSyncDlg/refreshSync so the banner reflects the empty state.
+  if (total === 0) {
+    if ($("#syncDlg").open) $("#syncDlg").close();
+    refreshSync();
+    return;
+  }
+  sub.textContent = "Die folgenden Updates erfordern Aktionen, damit deine Anki-Sammlung mit der App synchron ist.";
 
   // Section 1 — topics with re-export needed
   const sec1 = document.createElement("div");
