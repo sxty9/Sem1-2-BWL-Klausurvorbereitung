@@ -514,6 +514,15 @@
   </div>
 </dialog>
 
+<dialog id="deletedListDlg" style="max-width:540px;width:94%;padding:22px;">
+  <h3 style="margin:0 0 6px">Auf dem Server gelöschte Karten</h3>
+  <p style="margin:0 0 14px;font-size:12px;color:var(--muted)">Diese Karten noch manuell in Anki löschen — Suche dort nach dem Vorderseiten-Text.</p>
+  <div id="deletedListBody" style="max-height:55vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+    <button id="closedDeletedList">Schließen</button>
+  </div>
+</dialog>
+
 <input type="file" id="filePicker" style="display:none">
 <div class="toast" id="toast"></div>
 <div class="loading-overlay" id="loadingOverlay"><div class="box" id="loadingText">Lade…</div></div>
@@ -1381,7 +1390,7 @@ function refreshSync() {
     parts.push(`<b>${pending.topicsNeedingExport.length}</b> Thema${pending.topicsNeedingExport.length !== 1 ? "s" : ""} mit Updates`);
   }
   if (pending.tombstones.length) {
-    parts.push(`<b>${pending.tombstones.length}</b> Karte${pending.tombstones.length !== 1 ? "n" : ""} zum Aufräumen in Anki`);
+    parts.push(`<b>${pending.tombstones.length}</b> Karte${pending.tombstones.length !== 1 ? "n" : ""} auf dem Server gelöscht`);
   }
   tEl.innerHTML = "🔔 Anki ist nicht aktuell — " + parts.join(" · ");
   banner.classList.add("show");
@@ -1464,13 +1473,13 @@ function openSyncDlg() {
   // Section 2 — tombstones (cards to remove manually in Anki)
   const sec2 = document.createElement("div");
   sec2.className = "sync-section";
-  sec2.innerHTML = `<h4>Karten zum Aufräumen in Anki</h4>`;
+  sec2.innerHTML = `<h4>Auf dem Server gelöscht — in deinem Anki noch vorhanden</h4>`;
   if (!pending.tombstones.length) {
     sec2.insertAdjacentHTML("beforeend", `<div class="sync-empty">Keine.</div>`);
   } else {
     const list = document.createElement("div");
     list.className = "sync-tombstones";
-    pending.tombstones.forEach((d, i) => {
+    pending.tombstones.forEach((d) => {
       const row = document.createElement("div");
       row.className = "tt-row";
       const front = (d.front || "").replace(/\s+/g, " ").trim() || "(leer)";
@@ -1482,15 +1491,14 @@ function openSyncDlg() {
     const actions = document.createElement("div");
     actions.className = "sync-actions";
     actions.innerHTML = `
-      <button class="small" id="syncCopy">Liste kopieren</button>
+      <button class="small" id="syncShowList">Karten anzeigen</button>
       <button class="small" id="syncApkg">Cleanup-.apkg</button>
-      <button class="small ghost" id="syncDone">Erledigt (Karten in Anki gelöscht)</button>
+      <button class="small ghost" id="syncDone">In Anki gelöscht ✓</button>
     `;
-    actions.querySelector("#syncCopy").addEventListener("click", cleanupCopy);
+    actions.querySelector("#syncShowList").addEventListener("click", showDeletedCardsList);
     actions.querySelector("#syncApkg").addEventListener("click", cleanupExportApkg);
     actions.querySelector("#syncDone").addEventListener("click", () => {
       cleanupClear();
-      // Re-render the dialog so the now-empty tombstones section disappears.
       if ($("#syncDlg").open) openSyncDlg();
     });
     sec2.appendChild(actions);
@@ -1503,6 +1511,33 @@ function openSyncDlg() {
 // Build a SIMPLE cleanup list — just topic + front side, so the student can
 // quickly search for those titles in Anki (Anki search matches partial front
 // text). No GUIDs, no dates, no back side.
+function showDeletedCardsList() {
+  const store = loadAnkiLocal();
+  const body = $("#deletedListBody");
+  body.innerHTML = "";
+  if (!store.deletedCards.length) {
+    body.innerHTML = `<div style="color:var(--muted);font-size:13px">Keine gelöschten Karten.</div>`;
+  } else {
+    let lastTopic = null;
+    store.deletedCards.forEach((d) => {
+      const topic = d.topicTitle || "Unbenannt";
+      if (topic !== lastTopic) {
+        const hdr = document.createElement("div");
+        hdr.style.cssText = "font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:8px;";
+        hdr.textContent = topic;
+        body.appendChild(hdr);
+        lastTopic = topic;
+      }
+      const row = document.createElement("div");
+      row.style.cssText = "background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:13px;";
+      const front = (d.front || "").replace(/\s+/g, " ").trim() || "(leer)";
+      row.textContent = front;
+      body.appendChild(row);
+    });
+  }
+  $("#deletedListDlg").showModal();
+}
+
 async function buildCleanupText() {
   const store = await resolveGuids();
   const lines = [
@@ -1850,6 +1885,7 @@ $("#btnExportLudolph").addEventListener("click", exportLudolphAnki);
 $("#syncBanner").addEventListener("click", openSyncDlg);
 $("#syncBannerOpen").addEventListener("click", (e) => { e.stopPropagation(); openSyncDlg(); });
 $("#syncClose").addEventListener("click", () => $("#syncDlg").close());
+$("#closedDeletedList").addEventListener("click", () => $("#deletedListDlg").close());
 
 // Student profile (per-browser identity for local Anki state).
 function renderStudentLabel() {
