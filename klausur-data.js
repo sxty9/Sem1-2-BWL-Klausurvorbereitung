@@ -19,7 +19,14 @@ window.KLAUSUR_DATA = {
       "title": "Nutzwertanalyse",
       "location": "Satz 1, S. 99",
       "notes": "",
-      "attachments": [],
+      "attachments": [
+        {
+          "id": "6uzpehsaxt16",
+          "name": "Nutzwertanalyse erklärt.m4a",
+          "path": "notes/Nutzwertanalyse erklärt.m4a",
+          "source": "repo"
+        }
+      ],
       "id": "jsgiw7sz3rto"
     },
     {
@@ -142,6 +149,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:24:24.357Z"
+    "lastSaved": "2026-06-02T11:26:21.641Z"
   }
 };
