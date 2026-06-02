@@ -588,10 +588,10 @@ function renderTopics() {
         <span class="drag" title="Ziehen zum Sortieren">⋮⋮</span>
         <input class="title" type="text" value="${escapeAttr(t.title)}" placeholder="Thema…">
         <input class="loc" type="text" value="${escapeAttr(t.location || "")}" placeholder="z.B. Satz 1, S. 86">
+        <button class="small ghost" data-act="anki" title="Anki Karteikarten">🗂 <span class="anki-badge ${cardCount ? "" : "empty"}">${cardCount}</span></button>
         <div class="actions">
           <button class="small ghost" data-act="up" title="Hoch">↑</button>
           <button class="small ghost" data-act="down" title="Runter">↓</button>
-          <button class="small ghost" data-act="anki" title="Anki Karteikarten">🗂 <span class="anki-badge ${cardCount ? "" : "empty"}">${cardCount}</span></button>
           <button class="small danger" data-act="del" title="Löschen">✕</button>
         </div>
       </div>
