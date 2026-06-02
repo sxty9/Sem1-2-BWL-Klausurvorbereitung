@@ -80,7 +80,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Blue Ocean",
-      "location": "Separate Datei",
+      "location": "Separate Datei in Moodle",
       "notes": "",
       "attachments": [],
       "id": "j2jbktkc3rto"
@@ -95,6 +95,6 @@ window.KLAUSUR_DATA = {
   ],
   "ludolph": [],
   "_meta": {
-    "lastSaved": "2026-06-02T09:13:02.607Z"
+    "lastSaved": "2026-06-02T09:28:26.991Z"
   }
 };
