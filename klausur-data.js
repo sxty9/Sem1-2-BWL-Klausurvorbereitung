@@ -95,7 +95,7 @@ window.KLAUSUR_DATA = {
     {
       "id": "zoxu21n194er",
       "title": "Unternehmenssteuern",
-      "location": "",
+      "location": "aus der Vorlesung",
       "notes": "",
       "attachments": []
     }
@@ -107,6 +107,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T10:17:43.542Z"
+    "lastSaved": "2026-06-02T10:18:13.959Z"
   }
 };
