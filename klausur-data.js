@@ -182,9 +182,13 @@ window.KLAUSUR_DATA = {
     {
       "id": "ifv0a7nxcai3",
       "text": "Planung ist den Zufall durch den Irrtum zu ersetzen"
+    },
+    {
+      "id": "0l88j186d1sk",
+      "text": "60%??? So viele sind wird doch garnicht !!"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:38:04.839Z"
+    "lastSaved": "2026-06-02T11:38:27.890Z"
   }
 };
