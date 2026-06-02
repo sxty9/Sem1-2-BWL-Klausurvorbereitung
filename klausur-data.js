@@ -19,6 +19,11 @@ window.KLAUSUR_DATA = {
           "id": "bxscvtdpaj29",
           "front": "testkarte",
           "back": "testkarte"
+        },
+        {
+          "id": "hwgdwgt6bjxa",
+          "front": "sdf",
+          "back": "sdfsdfsdf"
         }
       ]
     },
@@ -427,6 +432,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T16:16:13.814Z"
+    "lastSaved": "2026-06-02T16:16:56.706Z"
   }
 };
