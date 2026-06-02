@@ -2,27 +2,6 @@
 window.KLAUSUR_DATA = {
   "topics": [
     {
-      "title": "A short Time Travel",
-      "location": "Satz 1, S. 43",
-      "notes": "",
-      "attachments": [
-        {
-          "id": "kge0058i52uv",
-          "name": "A_short_time_travel_-_überblick.m4a",
-          "path": "notes/A_short_time_travel_-_überblick.m4a",
-          "source": "repo"
-        }
-      ],
-      "id": "u3cjti8e3rto",
-      "cards": [
-        {
-          "id": "xeirq8pd98fj",
-          "front": "test1",
-          "back": "test2"
-        }
-      ]
-    },
-    {
       "title": "SWOT-Analyse",
       "location": "Satz 1, S. 86",
       "notes": "",
@@ -442,6 +421,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T15:47:24.118Z"
+    "lastSaved": "2026-06-02T15:47:52.247Z"
   }
 };
