@@ -107,8 +107,13 @@ window.KLAUSUR_DATA = {
       ]
     }
   ],
-  "ludolph": [],
+  "ludolph": [
+    {
+      "id": "k32pfkqs5tse",
+      "text": "spruch1\n"
+    }
+  ],
   "_meta": {
-    "lastSaved": "2026-06-02T09:11:58.172Z"
+    "lastSaved": "2026-06-02T09:12:37.536Z"
   }
 };
