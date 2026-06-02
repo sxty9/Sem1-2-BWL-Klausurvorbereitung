@@ -1355,7 +1355,7 @@ function computePendingChanges() {
         removed.push({ ankiId, front: s.front || "" });
       }
     }
-    if (added.length || changed.length || removed.length) {
+    if (added.length || changed.length) {
       topicsNeedingExport.push({
         topicId: t.id,
         topicTitle: t.title || "Unbenannt",
