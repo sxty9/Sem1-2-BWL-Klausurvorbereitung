@@ -21,6 +21,31 @@ function guid() {
   return s;
 }
 
+// Deterministic Anki note GUID derived from a stable card id.
+// Anki only requires the guid to be a stable, collision-resistant string;
+// it is what Anki uses to recognise "the same note" across repeated imports.
+// Same id -> same guid -> re-import updates the existing note instead of
+// creating a duplicate. We base91-encode a sha1 of the id to stay compact
+// and within Anki's accepted guid alphabet.
+const GUID_ALPHABET =
+  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-./:;<=>?@[]^_`{|}~";
+
+function stableGuid(id) {
+  const hashHex = crypto.createHash("sha1").update(String(id), "utf8").digest("hex");
+  // Use the first 64 bits of the digest as an unsigned integer, then base91-encode.
+  let num = BigInt("0x" + hashHex.substring(0, 16));
+  const base = BigInt(GUID_ALPHABET.length);
+  let out = "";
+  while (num > 0n) {
+    const rem = Number(num % base);
+    out = GUID_ALPHABET[rem] + out;
+    num = num / base;
+  }
+  // Pad to a stable length so short hashes still look like Anki guids.
+  while (out.length < 10) out = GUID_ALPHABET[0] + out;
+  return out;
+}
+
 function fieldChecksum(field) {
   const stripped = field.replace(/<[^>]*>/g, "").trim();
   const hash = crypto.createHash("sha1").update(stripped, "utf8").digest("hex");
@@ -131,6 +156,9 @@ function buildApkgDb(SQL, allDecks) {
   // Insert notes + cards
   let cardPos = 0;
   let baseTime = Date.now();
+  // Stable tag identifying notes that originate from this app/deck. Lets the
+  // user find every card this tool produced inside Anki (search "tag:bwl-klausur").
+  const APP_TAG = "bwl-klausur";
   allDecks.forEach(d => {
     (d.cards || []).forEach((card, ci) => {
       const noteId = baseTime + cardPos * 2;
@@ -138,10 +166,14 @@ function buildApkgDb(SQL, allDecks) {
       const front = card.front || "";
       const back = card.back || "";
       const flds = front + "\x1f" + back;
+      // Prefer a stable, app-supplied card id so the derived guid is identical
+      // across exports. Fall back to a random guid for cards without an id.
+      const noteGuid = card.id ? stableGuid(card.id) : guid();
+      const tags = " " + APP_TAG + " ";
 
       db.run(
         `INSERT INTO notes VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-        [noteId, guid(), modelId, now, -1, "", flds, front, fieldChecksum(front), 0, ""]
+        [noteId, noteGuid, modelId, now, -1, tags, flds, front, fieldChecksum(front), 0, ""]
       );
       db.run(
         `INSERT INTO cards VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,

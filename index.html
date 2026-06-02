@@ -235,6 +235,13 @@
   }
   .anki-foot .left { display: flex; gap: 8px; align-items: center; }
   .anki-foot .count { font-size: 12px; color: var(--muted); }
+  .anki-cleanup {
+    padding: 10px 20px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap; background: rgba(251,191,36,.06); flex-shrink: 0;
+  }
+  .anki-cleanup .cleanup-info { font-size: 12px; color: var(--warn); }
+  .anki-cleanup .cleanup-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .anki-badge {
     box-sizing: border-box;
     display: inline-flex; align-items: center; justify-content: center;
@@ -391,6 +398,14 @@
     <button class="ghost small" id="closeAnki">Schließen</button>
   </div>
   <div class="anki-cards" id="ankiCards"></div>
+  <div class="anki-cleanup" id="ankiCleanup" style="display:none">
+    <span class="cleanup-info" id="ankiCleanupInfo"></span>
+    <div class="cleanup-actions">
+      <button class="small ghost" id="ankiCleanupCopy" title="Liste der gelöschten Karten kopieren">Liste kopieren</button>
+      <button class="small ghost" id="ankiCleanupExport" title="Gelöschte Karten als separates .apkg (zum manuellen Entfernen)">Cleanup-.apkg</button>
+      <button class="small ghost" id="ankiCleanupClear" title="Tombstones entfernen (erst nachdem du in Anki aufgeräumt hast)">Erledigt</button>
+    </div>
+  </div>
   <div class="anki-foot">
     <div class="left">
       <button class="small primary" id="ankiAddCard">+ Karte</button>
@@ -418,7 +433,7 @@
 const LOCAL_CACHE_KEY = "bwl-klausur-cache";
 const NOTES_DIR = "notes";
 
-let state = { topics: [], ludolph: [] };
+let state = { topics: [], ludolph: [], deletedCards: [] };
 let baseSha = null;
 let dirty = false;
 let pendingUploads = new Map(); // attachmentId -> File
@@ -430,6 +445,41 @@ let repoFiles = [];
 
 const $ = sel => document.querySelector(sel);
 function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
+// Stable key for an Anki note: topic id + card id. Namespacing with the topic
+// keeps guids unique even if the same card id ever appears under two topics,
+// and stays identical across exports so Anki re-imports update instead of dupe.
+function ankiCardKey(topic, card) { return (topic && topic.id ? topic.id : "t") + ":" + (card && card.id ? card.id : uid()); }
+// Mirror of the server's stableGuid (api/anki.js) so the cleanup list can show
+// the exact note GUID Anki stores. Must stay in sync with the server function.
+const ANKI_GUID_ALPHABET =
+  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-./:;<=>?@[]^_`{|}~";
+async function sha1Hex(str) {
+  const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+// Synchronous guid used in tombstones: stored as a deferred value and filled in
+// when available. We compute it lazily via ankiGuidAsync; the sync wrapper
+// returns a cached value or a placeholder that gets upgraded on export/copy.
+function ankiGuid(id) {
+  // Cheap synchronous fallback used at delete-time; upgraded to the real
+  // base91 guid before it is shown/copied via resolveGuids().
+  return "pending:" + id;
+}
+async function ankiGuidAsync(id) {
+  const hashHex = await sha1Hex(String(id));
+  let num = BigInt("0x" + hashHex.substring(0, 16));
+  const base = BigInt(ANKI_GUID_ALPHABET.length);
+  let out = "";
+  while (num > 0n) { out = ANKI_GUID_ALPHABET[Number(num % base)] + out; num = num / base; }
+  while (out.length < 10) out = ANKI_GUID_ALPHABET[0] + out;
+  return out;
+}
+// Fill in any still-"pending" guids on tombstones (called before showing/copying).
+async function resolveGuids() {
+  for (const d of (state.deletedCards || [])) {
+    if (!d.guid || d.guid.startsWith("pending:")) d.guid = await ankiGuidAsync(d.ankiId);
+  }
+}
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 function escapeText(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function escapeAttr(s) { return escapeText(s).replace(/"/g, "&quot;"); }
@@ -464,6 +514,26 @@ function ensureIds() {
     t.cards.forEach(c => { if (!c.id) c.id = uid(); });
   });
   state.ludolph.forEach(s => { if (!s.id) s.id = uid(); });
+  if (!Array.isArray(state.deletedCards)) state.deletedCards = [];
+}
+
+// Record a tombstone when a card is removed, so we keep its identity for a
+// later manual Anki cleanup (Anki cannot delete notes via a deck-package import).
+function recordTombstone(topic, card) {
+  if (!card || !(card.front || card.back)) return; // skip empty placeholder cards
+  if (!Array.isArray(state.deletedCards)) state.deletedCards = [];
+  const ankiId = ankiCardKey(topic, card);
+  // De-dupe: if this card was already tombstoned, don't add it twice.
+  if (state.deletedCards.some(d => d.ankiId === ankiId)) return;
+  state.deletedCards.push({
+    ankiId: ankiId,
+    guid: ankiGuid(ankiId),
+    topicTitle: (topic && topic.title) || "Unbenannt",
+    deckName: "BWL - " + ((topic && topic.title) || "Unbenannt"),
+    front: card.front || "",
+    back: card.back || "",
+    deletedAt: new Date().toISOString()
+  });
 }
 
 function markDirty() {
@@ -510,6 +580,7 @@ async function loadFromServer() {
   const json = await r.json();
   state.topics = Array.isArray(json.state?.topics) ? json.state.topics : [];
   state.ludolph = Array.isArray(json.state?.ludolph) ? json.state.ludolph : [];
+  state.deletedCards = Array.isArray(json.state?.deletedCards) ? json.state.deletedCards : [];
   ensureIds();
   baseSha = json.sha || null;
   try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
@@ -911,6 +982,7 @@ function renderAnkiCards() {
       item.querySelector("[data-act='up']").addEventListener("click", () => moveCard(ci, -1));
       item.querySelector("[data-act='down']").addEventListener("click", () => moveCard(ci, +1));
       item.querySelector(".rm").addEventListener("click", () => {
+        recordTombstone(t, card);
         cards.splice(ci, 1);
         markDirty(); renderAnkiCards(); render();
       });
@@ -944,7 +1016,71 @@ function renderAnkiCards() {
   }
   $("#ankiCount").textContent = `${cards.length} Karte${cards.length !== 1 ? "n" : ""}`;
   $("#ankiExport").disabled = !cards.length;
+  renderAnkiCleanup();
 }
+
+// Show the deletion-cleanup bar with the count of tombstoned cards. Anki cannot
+// auto-remove notes that are merely missing from an imported deck package, so we
+// surface the deleted cards here and let the user copy/export a cleanup list.
+function renderAnkiCleanup() {
+  const bar = $("#ankiCleanup");
+  const n = (state.deletedCards || []).length;
+  if (!n) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  $("#ankiCleanupInfo").textContent =
+    `${n} gelöschte Karte${n !== 1 ? "n" : ""} – in Anki manuell entfernen (Anki löscht beim Import nicht automatisch).`;
+}
+
+// Build a human-readable cleanup list of all tombstoned cards.
+async function buildCleanupText() {
+  await resolveGuids();
+  const lines = [
+    "Anki-Aufräumliste — diese Karten wurden in der App gelöscht.",
+    "Anki entfernt sie NICHT automatisch beim Import. So entfernst du sie:",
+    "1) Öffne Anki  2) Suche oben nach  tag:bwl-klausur",
+    "3) Lösche die unten aufgeführten Karten (z. B. per Vorderseiten-Text oder GUID).",
+    ""
+  ];
+  (state.deletedCards || []).forEach((d, i) => {
+    const front = (d.front || "").replace(/\s+/g, " ").trim();
+    const back = (d.back || "").replace(/\s+/g, " ").trim();
+    lines.push(`${i + 1}. [${d.topicTitle}] ${front || "(leer)"}  →  ${back || "(leer)"}`);
+    lines.push(`   guid: ${d.guid}   gelöscht: ${d.deletedAt}`);
+  });
+  return lines.join("\n");
+}
+
+$("#ankiCleanupCopy").addEventListener("click", async () => {
+  try {
+    const text = await buildCleanupText();
+    await navigator.clipboard.writeText(text);
+    toast("Aufräumliste kopiert ✓", "ok");
+  } catch (e) {
+    toast("Kopieren fehlgeschlagen: " + e.message, "err");
+  }
+});
+
+$("#ankiCleanupExport").addEventListener("click", async () => {
+  const dels = state.deletedCards || [];
+  if (!dels.length) { toast("Keine gelöschten Karten", "warn"); return; }
+  await resolveGuids();
+  // Clearly-labelled separate deck so it is never confused with the study deck.
+  const cards = dels.map(d => ({
+    id: d.ankiId,
+    front: "[GELÖSCHT] " + (d.front || ""),
+    back: (d.back || "") + `<hr><small>In Anki entfernen · guid ${d.guid}</small>`
+  }));
+  await downloadApkg({ deckName: "BWL Klausur - ZU LÖSCHEN", cards });
+});
+
+$("#ankiCleanupClear").addEventListener("click", () => {
+  const n = (state.deletedCards || []).length;
+  if (!n) return;
+  if (!confirm(`${n} Tombstone(s) entfernen?\n\nNur bestätigen, wenn du die Karten in Anki bereits gelöscht hast. Diese Liste lässt sich danach nicht wiederherstellen.`)) return;
+  state.deletedCards = [];
+  markDirty(); renderAnkiCleanup();
+  toast("Aufräumliste geleert ✓", "ok");
+});
 
 function moveCard(idx, delta) {
   const cards = ankiTopic && ankiTopic.cards;
@@ -982,7 +1118,7 @@ async function exportAnki(topic) {
   const deckName = "BWL - " + (topic.title || "Unbenannt");
   const cards = topic.cards
     .filter(c => c.front && c.front.trim())
-    .map(c => ({ front: c.front, back: c.back || "" }));
+    .map(c => ({ id: ankiCardKey(topic, c), front: c.front, back: c.back || "" }));
   if (!cards.length) {
     toast("Keine Karten mit Inhalt", "warn");
     return;
@@ -995,7 +1131,7 @@ async function exportAllAnki() {
     .filter(t => t.cards && t.cards.length && t.cards.some(c => c.front && c.front.trim()))
     .map(t => ({
       name: "BWL Klausur::" + (t.title || "Unbenannt"),
-      cards: t.cards.filter(c => c.front && c.front.trim()).map(c => ({ front: c.front, back: c.back || "" }))
+      cards: t.cards.filter(c => c.front && c.front.trim()).map(c => ({ id: ankiCardKey(t, c), front: c.front, back: c.back || "" }))
     }));
   if (!decks.length) {
     toast("Keine Karteikarten in keinem Thema vorhanden", "warn");
@@ -1054,7 +1190,10 @@ async function exportLudolphAnki() {
     toast("Keine Sprüche zum Exportieren", "warn");
     return;
   }
-  const cards = sprueche.map(s => splitSpruch(s.text)).filter(Boolean);
+  const cards = sprueche.map(s => {
+    const fb = splitSpruch(s.text);
+    return fb ? { id: "ludolph:" + s.id, front: fb.front, back: fb.back } : null;
+  }).filter(Boolean);
   await downloadApkg({ deckName: "Ludolph Sprüche", cards });
 }
 
@@ -1138,6 +1277,7 @@ async function rollbackTo(sha, label) {
     // Apply and save as new commit
     state.topics = Array.isArray(oldState.topics) ? oldState.topics : [];
     state.ludolph = Array.isArray(oldState.ludolph) ? oldState.ludolph : [];
+    state.deletedCards = Array.isArray(oldState.deletedCards) ? oldState.deletedCards : [];
     ensureIds();
     // Force-save immediately (no dirty check, use current baseSha)
     const saveR = await api("/api/data", {
