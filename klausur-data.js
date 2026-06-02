@@ -435,18 +435,8 @@ window.KLAUSUR_DATA = {
       "height": "2px"
     }
   ],
-  "deletedCards": [
-    {
-      "ankiId": "u3cjti8e3rto:nlz3a1tj4lb7",
-      "guid": "pending:u3cjti8e3rto:nlz3a1tj4lb7",
-      "topicTitle": "A short Time Travel",
-      "deckName": "BWL - A short Time Travel",
-      "front": "Test Ankikarte Vorderseite",
-      "back": "Test Ankikarte Rückseite",
-      "deletedAt": "2026-06-02T14:49:56.129Z"
-    }
-  ],
+  "deletedCards": [],
   "_meta": {
-    "lastSaved": "2026-06-02T14:49:59.852Z"
+    "lastSaved": "2026-06-02T14:59:01.840Z"
   }
 };
