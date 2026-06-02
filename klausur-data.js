@@ -435,7 +435,6 @@ window.KLAUSUR_DATA = {
       "height": "2px"
     }
   ],
-  "deletedCards": [],
   "_meta": {
     "lastSaved": "2026-06-02T14:59:01.840Z"
   }

@@ -242,6 +242,13 @@
   }
   .anki-cleanup .cleanup-info { font-size: 12px; color: var(--warn); }
   .anki-cleanup .cleanup-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  #globalCleanup { border: 1px solid var(--warn); border-radius: 10px; margin-top: 10px; }
+  .anki-student {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--muted);
+  }
+  .anki-student .student-help { color: var(--muted); }
+  .anki-student b { color: var(--text, inherit); }
   .anki-badge {
     box-sizing: border-box;
     display: inline-flex; align-items: center; justify-content: center;
@@ -375,6 +382,21 @@
     <div class="add-row" style="justify-content:center">
       <button id="btnExportAll">Alle Karteikarten exportieren (.apkg)</button>
     </div>
+    <div class="anki-cleanup" id="globalCleanup" style="display:none">
+      <span class="cleanup-info" id="globalCleanupInfo"></span>
+      <div class="cleanup-actions">
+        <button class="small ghost" id="globalCleanupCopy" title="Liste der gelöschten Karten kopieren">Liste kopieren</button>
+        <button class="small ghost" id="globalCleanupExport" title="Gelöschte Karten als separates .apkg (zum manuellen Entfernen)">Cleanup-.apkg</button>
+        <button class="small ghost" id="globalCleanupClear" title="Tombstones entfernen (erst nachdem du in Anki aufgeräumt hast)">Erledigt</button>
+      </div>
+    </div>
+    <div class="anki-student" id="ankiStudent">
+      <span class="student-info">
+        Anki-Profil: <b id="studentNameLabel">–</b>
+        <span class="student-help">· Dein Anki-Export-/Aufräumstatus wird nur lokal in diesem Browser gespeichert und ist pro Student getrennt.</span>
+      </span>
+      <button class="small ghost" id="btnEditStudent" title="Profilnamen für dieses Gerät ändern">Profil ändern</button>
+    </div>
   </section>
 
   <section class="panel">
@@ -433,7 +455,22 @@
 const LOCAL_CACHE_KEY = "bwl-klausur-cache";
 const NOTES_DIR = "notes";
 
-let state = { topics: [], ludolph: [], deletedCards: [] };
+// ============================================================
+//  Per-student local Anki state (localStorage, NOT shared)
+// ------------------------------------------------------------
+//  The app content (topics/cards/Sprüche) is collaborative and lives on the
+//  server. The Anki *export/import* state, however, belongs to each student's
+//  own Anki collection in their own browser. We therefore keep two things in
+//  localStorage only, keyed by a per-browser student id:
+//    - exported : ankiIds this student has actually exported (export-awareness)
+//    - deletedCards : tombstones — but ONLY for cards this student exported,
+//                     so cleanup notices never leak between students.
+// ============================================================
+const STUDENT_ID_KEY = "bwl-anki-student-id";
+const STUDENT_NAME_KEY = "bwl-anki-student-name";
+const ANKI_LOCAL_PREFIX = "bwl-anki-local:"; // + studentId → { exported:[], deletedCards:[] }
+
+let state = { topics: [], ludolph: [] };
 let baseSha = null;
 let dirty = false;
 let pendingUploads = new Map(); // attachmentId -> File
@@ -449,6 +486,56 @@ function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toS
 // keeps guids unique even if the same card id ever appears under two topics,
 // and stays identical across exports so Anki re-imports update instead of dupe.
 function ankiCardKey(topic, card) { return (topic && topic.id ? topic.id : "t") + ":" + (card && card.id ? card.id : uid()); }
+
+// ------------------------------------------------------------
+//  Student identity + per-student Anki store (localStorage only)
+// ------------------------------------------------------------
+function getStudentId() {
+  let id = "";
+  try { id = localStorage.getItem(STUDENT_ID_KEY) || ""; } catch (e) {}
+  if (!id) {
+    id = "stud_" + uid();
+    try { localStorage.setItem(STUDENT_ID_KEY, id); } catch (e) {}
+  }
+  return id;
+}
+function getStudentName() {
+  try { return localStorage.getItem(STUDENT_NAME_KEY) || ""; } catch (e) { return ""; }
+}
+function setStudentName(name) {
+  try { localStorage.setItem(STUDENT_NAME_KEY, name || ""); } catch (e) {}
+}
+// Load this student's local Anki store. Falls back to an empty store.
+function loadAnkiLocal() {
+  const id = getStudentId();
+  let store = { exported: [], deletedCards: [] };
+  try {
+    const raw = localStorage.getItem(ANKI_LOCAL_PREFIX + id);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      store.exported = Array.isArray(parsed.exported) ? parsed.exported : [];
+      store.deletedCards = Array.isArray(parsed.deletedCards) ? parsed.deletedCards : [];
+    }
+  } catch (e) {}
+  return store;
+}
+function saveAnkiLocal(store) {
+  const id = getStudentId();
+  try { localStorage.setItem(ANKI_LOCAL_PREFIX + id, JSON.stringify(store)); } catch (e) {}
+}
+// True if the current student has ever exported this ankiId.
+function wasExported(ankiId) {
+  return loadAnkiLocal().exported.includes(ankiId);
+}
+// Mark a batch of ankiIds as exported by this student (export-awareness).
+function markExported(ankiIds) {
+  const store = loadAnkiLocal();
+  let changed = false;
+  for (const id of ankiIds) {
+    if (id && !store.exported.includes(id)) { store.exported.push(id); changed = true; }
+  }
+  if (changed) saveAnkiLocal(store);
+}
 // Mirror of the server's stableGuid (api/anki.js) so the cleanup list can show
 // the exact note GUID Anki stores. Must stay in sync with the server function.
 const ANKI_GUID_ALPHABET =
@@ -474,11 +561,16 @@ async function ankiGuidAsync(id) {
   while (out.length < 10) out = ANKI_GUID_ALPHABET[0] + out;
   return out;
 }
-// Fill in any still-"pending" guids on tombstones (called before showing/copying).
+// Fill in any still-"pending" guids on this student's tombstones
+// (called before showing/copying). Persists upgraded guids locally.
 async function resolveGuids() {
-  for (const d of (state.deletedCards || [])) {
-    if (!d.guid || d.guid.startsWith("pending:")) d.guid = await ankiGuidAsync(d.ankiId);
+  const store = loadAnkiLocal();
+  let changed = false;
+  for (const d of store.deletedCards) {
+    if (!d.guid || d.guid.startsWith("pending:")) { d.guid = await ankiGuidAsync(d.ankiId); changed = true; }
   }
+  if (changed) saveAnkiLocal(store);
+  return store;
 }
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 function escapeText(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -514,18 +606,23 @@ function ensureIds() {
     t.cards.forEach(c => { if (!c.id) c.id = uid(); });
   });
   state.ludolph.forEach(s => { if (!s.id) s.id = uid(); });
-  if (!Array.isArray(state.deletedCards)) state.deletedCards = [];
+  // Anki deletion state is per-student/local now — never carry it on shared state.
+  delete state.deletedCards;
 }
 
-// Record a tombstone when a card is removed, so we keep its identity for a
-// later manual Anki cleanup (Anki cannot delete notes via a deck-package import).
+// Record a tombstone when a card is removed — but ONLY if the *current student*
+// has previously exported this card to their own Anki collection. A card that
+// was added and deleted again without any export in between never reached Anki,
+// so there is nothing to clean up and we create no tombstone. Tombstones live in
+// the student's local store, so one student's cleanup list never leaks to another.
 function recordTombstone(topic, card) {
   if (!card || !(card.front || card.back)) return; // skip empty placeholder cards
-  if (!Array.isArray(state.deletedCards)) state.deletedCards = [];
   const ankiId = ankiCardKey(topic, card);
+  if (!wasExported(ankiId)) return; // export-awareness: never exported → no cleanup needed
+  const store = loadAnkiLocal();
   // De-dupe: if this card was already tombstoned, don't add it twice.
-  if (state.deletedCards.some(d => d.ankiId === ankiId)) return;
-  state.deletedCards.push({
+  if (store.deletedCards.some(d => d.ankiId === ankiId)) return;
+  store.deletedCards.push({
     ankiId: ankiId,
     guid: ankiGuid(ankiId),
     topicTitle: (topic && topic.title) || "Unbenannt",
@@ -534,6 +631,7 @@ function recordTombstone(topic, card) {
     back: card.back || "",
     deletedAt: new Date().toISOString()
   });
+  saveAnkiLocal(store);
 }
 
 function markDirty() {
@@ -580,7 +678,10 @@ async function loadFromServer() {
   const json = await r.json();
   state.topics = Array.isArray(json.state?.topics) ? json.state.topics : [];
   state.ludolph = Array.isArray(json.state?.ludolph) ? json.state.ludolph : [];
-  state.deletedCards = Array.isArray(json.state?.deletedCards) ? json.state.deletedCards : [];
+  // Migration: old global json.state.deletedCards (from commit a2955a4) is
+  // intentionally ignored — it was shared across all students and would create
+  // false cleanup notices for students who never exported those cards. Per-student
+  // tombstones now live in localStorage only. ensureIds() strips the shared field.
   ensureIds();
   baseSha = json.sha || null;
   try { localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({ state, ts: Date.now() })); } catch (e) {}
@@ -683,6 +784,7 @@ async function save() {
 function render() {
   renderTopics();
   renderLudolph();
+  renderGlobalCleanup();
 }
 
 function renderTopics() {
@@ -724,6 +826,8 @@ function renderTopics() {
     el.querySelector("[data-act='del']").addEventListener("click", () => {
       if (confirm(`Thema "${t.title}" wirklich löschen?`)) {
         t.attachments.forEach(a => pendingUploads.delete(a.id));
+        // Tombstone any of this topic's cards the student already exported.
+        (t.cards || []).forEach(c => recordTombstone(t, c));
         state.topics.splice(idx, 1);
         markDirty(); render();
       }
@@ -984,7 +1088,7 @@ function renderAnkiCards() {
       item.querySelector(".rm").addEventListener("click", () => {
         recordTombstone(t, card);
         cards.splice(ci, 1);
-        markDirty(); renderAnkiCards(); render();
+        markDirty(); renderAnkiCards(); render(); renderGlobalCleanup();
       });
 
       const drag = item.querySelector(".drag");
@@ -1024,16 +1128,33 @@ function renderAnkiCards() {
 // surface the deleted cards here and let the user copy/export a cleanup list.
 function renderAnkiCleanup() {
   const bar = $("#ankiCleanup");
-  const n = (state.deletedCards || []).length;
+  if (!bar) return;
+  const n = loadAnkiLocal().deletedCards.length;
   if (!n) { bar.style.display = "none"; return; }
   bar.style.display = "flex";
   $("#ankiCleanupInfo").textContent =
     `${n} gelöschte Karte${n !== 1 ? "n" : ""} – in Anki manuell entfernen (Anki löscht beim Import nicht automatisch).`;
 }
 
-// Build a human-readable cleanup list of all tombstoned cards.
+// Global cleanup bar shown near "Alle Karteikarten exportieren", so the
+// all-at-once export flow also surfaces deleted-card cleanup (not only the
+// per-topic Anki dialog). Reflects the same per-student local tombstones.
+function renderGlobalCleanup() {
+  const bar = $("#globalCleanup");
+  if (!bar) return;
+  const n = loadAnkiLocal().deletedCards.length;
+  if (!n) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  $("#globalCleanupInfo").textContent =
+    `${n} gelöschte Karte${n !== 1 ? "n" : ""} aus deinem Anki-Export – beim nächsten Import nicht automatisch entfernt. Hier aufräumen:`;
+}
+
+// Refresh every place that shows the cleanup state.
+function renderAllCleanup() { renderAnkiCleanup(); renderGlobalCleanup(); }
+
+// Build a human-readable cleanup list of this student's tombstoned cards.
 async function buildCleanupText() {
-  await resolveGuids();
+  const store = await resolveGuids();
   const lines = [
     "Anki-Aufräumliste — diese Karten wurden in der App gelöscht.",
     "Anki entfernt sie NICHT automatisch beim Import. So entfernst du sie:",
@@ -1041,7 +1162,7 @@ async function buildCleanupText() {
     "3) Lösche die unten aufgeführten Karten (z. B. per Vorderseiten-Text oder GUID).",
     ""
   ];
-  (state.deletedCards || []).forEach((d, i) => {
+  store.deletedCards.forEach((d, i) => {
     const front = (d.front || "").replace(/\s+/g, " ").trim();
     const back = (d.back || "").replace(/\s+/g, " ").trim();
     lines.push(`${i + 1}. [${d.topicTitle}] ${front || "(leer)"}  →  ${back || "(leer)"}`);
@@ -1050,7 +1171,7 @@ async function buildCleanupText() {
   return lines.join("\n");
 }
 
-$("#ankiCleanupCopy").addEventListener("click", async () => {
+async function cleanupCopy() {
   try {
     const text = await buildCleanupText();
     await navigator.clipboard.writeText(text);
@@ -1058,29 +1179,34 @@ $("#ankiCleanupCopy").addEventListener("click", async () => {
   } catch (e) {
     toast("Kopieren fehlgeschlagen: " + e.message, "err");
   }
-});
+}
 
-$("#ankiCleanupExport").addEventListener("click", async () => {
-  const dels = state.deletedCards || [];
-  if (!dels.length) { toast("Keine gelöschten Karten", "warn"); return; }
-  await resolveGuids();
+async function cleanupExportApkg() {
+  const store = await resolveGuids();
+  if (!store.deletedCards.length) { toast("Keine gelöschten Karten", "warn"); return; }
   // Clearly-labelled separate deck so it is never confused with the study deck.
-  const cards = dels.map(d => ({
+  const cards = store.deletedCards.map(d => ({
     id: d.ankiId,
     front: "[GELÖSCHT] " + (d.front || ""),
     back: (d.back || "") + `<hr><small>In Anki entfernen · guid ${d.guid}</small>`
   }));
   await downloadApkg({ deckName: "BWL Klausur - ZU LÖSCHEN", cards });
-});
+}
 
-$("#ankiCleanupClear").addEventListener("click", () => {
-  const n = (state.deletedCards || []).length;
+function cleanupClear() {
+  const store = loadAnkiLocal();
+  const n = store.deletedCards.length;
   if (!n) return;
   if (!confirm(`${n} Tombstone(s) entfernen?\n\nNur bestätigen, wenn du die Karten in Anki bereits gelöscht hast. Diese Liste lässt sich danach nicht wiederherstellen.`)) return;
-  state.deletedCards = [];
-  markDirty(); renderAnkiCleanup();
+  store.deletedCards = [];
+  saveAnkiLocal(store);
+  renderAllCleanup();
   toast("Aufräumliste geleert ✓", "ok");
-});
+}
+
+$("#ankiCleanupCopy").addEventListener("click", cleanupCopy);
+$("#ankiCleanupExport").addEventListener("click", cleanupExportApkg);
+$("#ankiCleanupClear").addEventListener("click", cleanupClear);
 
 function moveCard(idx, delta) {
   const cards = ankiTopic && ankiTopic.cards;
@@ -1123,7 +1249,11 @@ async function exportAnki(topic) {
     toast("Keine Karten mit Inhalt", "warn");
     return;
   }
+  // Export-awareness: remember (for this student) which cards reached Anki, so a
+  // later deletion of one of them produces a cleanup tombstone.
+  markExported(cards.map(c => c.id));
   await downloadApkg({ deckName, cards });
+  renderAnkiCleanup();
 }
 
 async function exportAllAnki() {
@@ -1137,7 +1267,10 @@ async function exportAllAnki() {
     toast("Keine Karteikarten in keinem Thema vorhanden", "warn");
     return;
   }
+  // Export-awareness: mark every exported card across all decks for this student.
+  markExported(decks.flatMap(d => d.cards.map(c => c.id)));
   await downloadApkg({ decks });
+  renderGlobalCleanup();
 }
 
 // Split a Spruch into front/back for Anki
@@ -1277,7 +1410,6 @@ async function rollbackTo(sha, label) {
     // Apply and save as new commit
     state.topics = Array.isArray(oldState.topics) ? oldState.topics : [];
     state.ludolph = Array.isArray(oldState.ludolph) ? oldState.ludolph : [];
-    state.deletedCards = Array.isArray(oldState.deletedCards) ? oldState.deletedCards : [];
     ensureIds();
     // Force-save immediately (no dirty check, use current baseSha)
     const saveR = await api("/api/data", {
@@ -1339,6 +1471,28 @@ $("#closeHistory").addEventListener("click", () => $("#historyDlg").close());
 $("#btnExportAll").addEventListener("click", exportAllAnki);
 $("#btnExportLudolph").addEventListener("click", exportLudolphAnki);
 
+// Global cleanup bar (same per-student local tombstones as the dialog bar).
+$("#globalCleanupCopy").addEventListener("click", cleanupCopy);
+$("#globalCleanupExport").addEventListener("click", cleanupExportApkg);
+$("#globalCleanupClear").addEventListener("click", cleanupClear);
+
+// Student profile (per-browser identity for local Anki state).
+function renderStudentLabel() {
+  const name = getStudentName();
+  $("#studentNameLabel").textContent = name || "(dieses Gerät)";
+}
+$("#btnEditStudent").addEventListener("click", () => {
+  const current = getStudentName();
+  const next = prompt(
+    "Name für dein Anki-Profil auf diesem Gerät (nur lokal gespeichert):",
+    current
+  );
+  if (next === null) return; // cancelled
+  setStudentName(next.trim());
+  renderStudentLabel();
+  toast("Anki-Profil aktualisiert ✓", "ok");
+});
+
 $("#btnAddTopic").addEventListener("click", addTopicFromInput);
 $("#newTopicInput").addEventListener("keydown", e => { if (e.key === "Enter") addTopicFromInput(); });
 function addTopicFromInput() {
@@ -1367,6 +1521,9 @@ window.addEventListener("keydown", e => {
 // ============================================================
 
 (async function init() {
+  getStudentId();       // ensure a per-browser student id exists
+  renderStudentLabel(); // show the local Anki profile name
+  renderGlobalCleanup();// show any pending per-student cleanup immediately
   // Quick first paint from cache
   try {
     const cached = JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY) || "null");
