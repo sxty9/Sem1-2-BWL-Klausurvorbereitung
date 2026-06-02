@@ -154,6 +154,52 @@
   .attach-menu-popup .label { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .5px; }
   .topic .actions { margin-left: auto; display: flex; gap: 6px; }
 
+  /* Anki cards section */
+  .cards-section {
+    border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden;
+  }
+  .cards-toggle {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel-2); color: var(--muted);
+    border: none; border-radius: 0; padding: 8px 12px;
+    font-size: 12px; cursor: pointer; gap: 8px;
+  }
+  .cards-toggle:hover { color: var(--text); background: #2d3d52; }
+  .cards-toggle .badge {
+    background: var(--accent); color: #0f172a; font-weight: 700;
+    padding: 1px 6px; border-radius: 999px; font-size: 10px; min-width: 18px; text-align: center;
+  }
+  .cards-toggle .badge.empty { background: transparent; border: 1px dashed var(--border); color: var(--muted); }
+  .cards-toggle .arrow { transition: transform .15s; }
+  .cards-toggle.open .arrow { transform: rotate(90deg); }
+  .cards-body { display: none; }
+  .cards-body.open { display: block; }
+  .card-row {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 6px; padding: 8px 12px;
+    border-top: 1px solid var(--border); align-items: start;
+  }
+  .card-row input {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 8px; font-size: 12px; outline: none;
+    font-family: inherit;
+  }
+  .card-row input:focus { border-color: var(--accent); }
+  .card-row input::placeholder { color: var(--muted); }
+  .card-row .rm {
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; font-size: 14px; padding: 4px 6px; line-height: 1;
+  }
+  .card-row .rm:hover { color: var(--danger); }
+  .cards-actions {
+    display: flex; gap: 6px; padding: 8px 12px;
+    border-top: 1px solid var(--border); justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .cards-actions .left { display: flex; gap: 6px; }
+
   .add-row {
     padding: 14px 18px;
     display: flex; gap: 8px; border-top: 1px solid var(--border);
@@ -272,6 +318,9 @@
       <input id="newTopicInput" type="text" placeholder="Neues Thema…">
       <button class="primary" id="btnAddTopic">+ Thema</button>
     </div>
+    <div class="add-row" style="justify-content:center">
+      <button id="btnExportAll">Alle Karteikarten exportieren (.apkg)</button>
+    </div>
   </section>
 
   <section class="panel">
@@ -343,6 +392,8 @@ function ensureIds() {
     if (!t.id) t.id = uid();
     if (!Array.isArray(t.attachments)) t.attachments = [];
     t.attachments.forEach(a => { if (!a.id) a.id = uid(); });
+    if (!Array.isArray(t.cards)) t.cards = [];
+    t.cards.forEach(c => { if (!c.id) c.id = uid(); });
   });
   state.ludolph.forEach(s => { if (!s.id) s.id = uid(); });
 }
@@ -519,6 +570,7 @@ function renderTopics() {
       </div>
       <textarea class="notes" placeholder="Notizen, Stichpunkte, Formeln…">${escapeText(t.notes || "")}</textarea>
       <div class="attachments" data-attachments></div>
+      <div class="cards-section" data-cards></div>
     `;
     el.querySelector("input.title").addEventListener("input", e => { t.title = e.target.value; markDirty(); });
     el.querySelector("input.loc").addEventListener("input",   e => { t.location = e.target.value; markDirty(); });
@@ -561,6 +613,7 @@ function renderTopics() {
     });
 
     renderAttachments(el.querySelector("[data-attachments]"), t);
+    renderCards(el.querySelector("[data-cards]"), t);
     topicsEl.appendChild(el);
   });
 }
@@ -729,6 +782,163 @@ function renderLudolph() {
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight + 2) + "px"; }
 
 // ============================================================
+//  Anki cards
+// ============================================================
+
+// Track which topics have their cards section open
+const openCardSections = new Set();
+
+function renderCards(container, topic) {
+  if (!Array.isArray(topic.cards)) topic.cards = [];
+  const cards = topic.cards;
+  const isOpen = openCardSections.has(topic.id);
+  const count = cards.length;
+
+  container.innerHTML = "";
+
+  // Toggle button
+  const toggle = document.createElement("button");
+  toggle.className = "cards-toggle" + (isOpen ? " open" : "");
+  toggle.innerHTML = `
+    <span><span class="arrow">▶</span> Anki Karteikarten</span>
+    <span class="badge ${count ? "" : "empty"}">${count}</span>
+  `;
+  toggle.addEventListener("click", () => {
+    if (openCardSections.has(topic.id)) openCardSections.delete(topic.id);
+    else openCardSections.add(topic.id);
+    renderCards(container, topic);
+  });
+  container.appendChild(toggle);
+
+  if (!isOpen) return;
+
+  const body = document.createElement("div");
+  body.className = "cards-body open";
+
+  // Existing cards
+  cards.forEach((card, ci) => {
+    const row = document.createElement("div");
+    row.className = "card-row";
+    row.innerHTML = `
+      <input type="text" value="${escapeAttr(card.front || "")}" placeholder="Vorderseite">
+      <input type="text" value="${escapeAttr(card.back || "")}" placeholder="Rückseite">
+      <button class="rm" title="Karte löschen">×</button>
+    `;
+    const [frontInput, backInput] = row.querySelectorAll("input");
+    frontInput.addEventListener("input", e => { card.front = e.target.value; markDirty(); });
+    backInput.addEventListener("input", e => { card.back = e.target.value; markDirty(); });
+    row.querySelector(".rm").addEventListener("click", () => {
+      cards.splice(ci, 1);
+      markDirty();
+      renderCards(container, topic);
+    });
+    body.appendChild(row);
+  });
+
+  // Add card row
+  const addRow = document.createElement("div");
+  addRow.className = "card-row";
+  addRow.innerHTML = `
+    <input type="text" placeholder="Vorderseite (neue Karte)" data-new-front>
+    <input type="text" placeholder="Rückseite" data-new-back>
+    <button class="small primary" title="Karte hinzufügen">+</button>
+  `;
+  const newFront = addRow.querySelector("[data-new-front]");
+  const newBack  = addRow.querySelector("[data-new-back]");
+  const addCard = () => {
+    const f = newFront.value.trim();
+    const b = newBack.value.trim();
+    if (!f) { newFront.focus(); return; }
+    cards.push({ id: uid(), front: f, back: b });
+    markDirty();
+    renderCards(container, topic);
+    // Focus new front input after re-render
+    setTimeout(() => {
+      const newInputs = container.querySelectorAll("[data-new-front]");
+      if (newInputs.length) newInputs[newInputs.length - 1].focus();
+    }, 0);
+  };
+  addRow.querySelector("button").addEventListener("click", addCard);
+  newFront.addEventListener("keydown", e => { if (e.key === "Tab" && !e.shiftKey) { /* let it go to back field */ } });
+  newBack.addEventListener("keydown", e => { if (e.key === "Enter") addCard(); });
+  body.appendChild(addRow);
+
+  // Actions row
+  const actionsRow = document.createElement("div");
+  actionsRow.className = "cards-actions";
+  actionsRow.innerHTML = `
+    <div class="left">
+      <button class="small" ${!count ? "disabled" : ""}>Exportieren (.apkg)</button>
+    </div>
+    <span style="font-size:11px;color:var(--muted)">${count} Karte${count !== 1 ? "n" : ""}</span>
+  `;
+  if (count) {
+    actionsRow.querySelector("button").addEventListener("click", () => exportAnki(topic));
+  }
+  body.appendChild(actionsRow);
+
+  container.appendChild(body);
+}
+
+async function exportAnki(topic) {
+  if (!topic.cards || !topic.cards.length) {
+    toast("Keine Karten zum Exportieren", "warn");
+    return;
+  }
+  const deckName = "BWL - " + (topic.title || "Unbenannt");
+  const cards = topic.cards
+    .filter(c => c.front && c.front.trim())
+    .map(c => ({ front: c.front, back: c.back || "" }));
+  if (!cards.length) {
+    toast("Keine Karten mit Inhalt", "warn");
+    return;
+  }
+  await downloadApkg({ deckName, cards });
+}
+
+async function exportAllAnki() {
+  const decks = state.topics
+    .filter(t => t.cards && t.cards.length && t.cards.some(c => c.front && c.front.trim()))
+    .map(t => ({
+      name: "BWL Klausur::" + (t.title || "Unbenannt"),
+      cards: t.cards.filter(c => c.front && c.front.trim()).map(c => ({ front: c.front, back: c.back || "" }))
+    }));
+  if (!decks.length) {
+    toast("Keine Karteikarten in keinem Thema vorhanden", "warn");
+    return;
+  }
+  await downloadApkg({ decks });
+}
+
+async function downloadApkg(body) {
+  try {
+    toast("Generiere .apkg…");
+    const res = await fetch("/api/anki", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      let msg = `${res.status}`;
+      try { const j = await res.json(); if (j.error) msg = j.error; } catch (e) {}
+      throw new Error(msg);
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get("Content-Disposition") || "";
+    let filename = "anki-export.apkg";
+    const m = cd.match(/filename\*?=(?:UTF-8'')?([^;\s]+)/i);
+    if (m) filename = decodeURIComponent(m[1]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast("Export fertig ✓", "ok");
+  } catch (e) {
+    toast("Export fehlgeschlagen: " + e.message, "err");
+  }
+}
+
+// ============================================================
 //  Version history + rollback
 // ============================================================
 
@@ -838,6 +1048,7 @@ $("#btnDiscard").addEventListener("click", reload);
 $("#btnReload").addEventListener("click", reload);
 $("#btnHistory").addEventListener("click", openHistory);
 $("#closeHistory").addEventListener("click", () => $("#historyDlg").close());
+$("#btnExportAll").addEventListener("click", exportAllAnki);
 
 $("#btnAddTopic").addEventListener("click", addTopicFromInput);
 $("#newTopicInput").addEventListener("keydown", e => { if (e.key === "Enter") addTopicFromInput(); });
@@ -845,7 +1056,7 @@ function addTopicFromInput() {
   const input = $("#newTopicInput");
   const title = input.value.trim();
   if (!title) return;
-  state.topics.push({ id: uid(), title, location: "", notes: "", attachments: [] });
+  state.topics.push({ id: uid(), title, location: "", notes: "", attachments: [], cards: [] });
   input.value = "";
   markDirty(); render();
 }

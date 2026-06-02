@@ -3,6 +3,7 @@
   "ignoreCommand": "bash -c 'CHANGED=$(git diff --name-only HEAD^ HEAD 2>/dev/null); echo \"$CHANGED\" | grep -qvE \"^(klausur-data\\.js|notes/)\" && exit 1 || exit 0'",
   "functions": {
     "api/upload.js": { "maxDuration": 60, "memory": 1024 },
+    "api/anki.js": { "maxDuration": 30, "memory": 1024 },
     "api/*.js": { "maxDuration": 30 }
   }
 }
