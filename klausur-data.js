@@ -171,21 +171,23 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "wn02mkpdtq0t",
-      "text": "Immer viel trinken, aber von Wasser ist nicht die Rede",
-      "height": "2px"
+      "text": "Immer viel trinken, aber von Wasser ist nicht die Rede!",
+      "height": "55px"
     },
     {
       "id": "eml4ppjlu85h",
-      "text": "Die Hälfte der deutschen können keine Bruchrechnung, das sind schonmal 30 %",
-      "height": "58px"
+      "text": "Die Hälfte der Deutschen können keine Bruchrechnung, das sind schonmal 30%.",
+      "height": "55px"
     },
     {
       "id": "h5wft6cybnvw",
-      "text": "Die Basis ist die Grundlage aller Fundamente"
+      "text": "Die Basis ist die Grundlage aller Fundamente.",
+      "height": "55px"
     },
     {
       "id": "ifv0a7nxcai3",
-      "text": "Planung ist den Zufall durch den Irrtum zu ersetzen"
+      "text": "Planung ist den Zufall durch den Irrtum zu ersetzen.",
+      "height": "2px"
     },
     {
       "id": "0l88j186d1sk",
@@ -194,16 +196,16 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "08uu4pqddj93",
-      "text": "Viel schlimmer als eine Bank auszurauben ist es eine Bank zu gründen ",
-      "height": "61px"
+      "text": "Viel schlimmer als eine Bank auszurauben ist es, eine Bank zu gründen.",
+      "height": "55px"
     },
     {
       "id": "hnzdeio3h184",
-      "text": "Der Mehrwert ist der Wert, der mehr wert ist als der Wert wert groß ist",
+      "text": "Der Mehrwert ist der Wert, der mehr wert ist als der Wert wert groß ist.",
       "height": "63px"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:45:36.309Z"
+    "lastSaved": "2026-06-02T11:46:16.363Z"
   }
 };
