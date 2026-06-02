@@ -14,7 +14,13 @@ window.KLAUSUR_DATA = {
         }
       ],
       "id": "u3cjti8e3rto",
-      "cards": []
+      "cards": [
+        {
+          "id": "nlz3a1tj4lb7",
+          "front": "Test Ankikarte Vorderseite",
+          "back": "Test Ankikarte Rückseite"
+        }
+      ]
     },
     {
       "title": "SWOT-Analyse",
@@ -435,7 +441,8 @@ window.KLAUSUR_DATA = {
       "height": "2px"
     }
   ],
+  "deletedCards": [],
   "_meta": {
-    "lastSaved": "2026-06-02T13:09:17.093Z"
+    "lastSaved": "2026-06-02T14:47:44.762Z"
   }
 };
