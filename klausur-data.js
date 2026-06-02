@@ -203,9 +203,13 @@ window.KLAUSUR_DATA = {
       "id": "hnzdeio3h184",
       "text": "Der Mehrwert ist der Wert, der mehr wert ist als der Wert wert groß ist.",
       "height": "63px"
+    },
+    {
+      "id": "dgd6x4ef710x",
+      "text": "Management ist ein totes Pferd"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T11:59:08.102Z"
+    "lastSaved": "2026-06-02T12:01:35.566Z"
   }
 };
