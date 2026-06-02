@@ -643,21 +643,19 @@ function cardContentHash(front, back) {
   return (front || "") + "\x1f" + (back || "");
 }
 
-// Persist a per-card content snapshot of the topic at export time. Future
-// drift detection then distinguishes:
-//   - new card     (ankiId missing from snap) → re-export
-//   - edited card  (ankiId present, hash differs) → re-export
-//   - removed card (ankiId in snap, absent now) → tombstones only, NOT re-export
-function snapshotExport(topic, cards) {
-  if (!topic || !topic.id) return;
-  const store = loadAnkiLocal();
+// Build a snapshot map from the exact list of cards that went into the .apkg
+// (the caller has already filtered to content-bearing cards with .id =
+// ankiCardKey). Drift detection later compares stored hash vs current hash:
+//   - ankiId missing in snap → new card → re-export
+//   - hash differs           → edited card → re-export
+//   - ankiId in snap, absent now → removed card → tombstone only, NOT re-export
+function buildSnapshotMap(cards) {
   const map = {};
-  for (const c of (topic.cards || [])) {
-    if (!c || !c.id || (!c.front && !c.back)) continue;
-    map[ankiCardKey(topic, c)] = cardContentHash(c.front, c.back);
+  for (const c of (cards || [])) {
+    if (!c || !c.id) continue;
+    map[c.id] = cardContentHash(c.front, c.back);
   }
-  store.topicExportCards[topic.id] = map;
-  saveAnkiLocal(store);
+  return map;
 }
 function saveAnkiLocal(store) {
   const id = getStudentId();
@@ -666,15 +664,6 @@ function saveAnkiLocal(store) {
 // True if the current student has ever exported this ankiId.
 function wasExported(ankiId) {
   return loadAnkiLocal().exported.includes(ankiId);
-}
-// Mark a batch of ankiIds as exported by this student (export-awareness).
-function markExported(ankiIds) {
-  const store = loadAnkiLocal();
-  let changed = false;
-  for (const id of ankiIds) {
-    if (id && !store.exported.includes(id)) { store.exported.push(id); changed = true; }
-  }
-  if (changed) saveAnkiLocal(store);
 }
 // Mirror of the server's stableGuid (api/anki.js) so the cleanup list can show
 // the exact note GUID Anki stores. Must stay in sync with the server function.
@@ -804,12 +793,12 @@ function finishLegacyMigration() {
       // exported[] entries (if any) still drive tombstones via the diff path.
       continue;
     }
-    const map = {};
-    for (const c of (t.cards || [])) {
-      if (!c || !c.id || (!c.front && !c.back)) continue;
-      map[ankiCardKey(t, c)] = cardContentHash(c.front, c.back);
-    }
-    store.topicExportCards[tid] = map;
+    // Build the snapshot from the same filter exportAnki uses (front content),
+    // so the migrated baseline matches what would have been in Anki.
+    const exported = (t.cards || [])
+      .filter(c => c && c.id && c.front && c.front.trim())
+      .map(c => ({ id: ankiCardKey(t, c), front: c.front, back: c.back || "" }));
+    store.topicExportCards[tid] = buildSnapshotMap(exported);
   }
   delete store._legacyMigrate;
   saveAnkiLocal(store);
@@ -1431,7 +1420,10 @@ function computePendingChanges() {
     if (snap === undefined) continue; // never exported this topic → skip
     let needsReExport = false;
     for (const c of (t.cards || [])) {
-      if (!c || !c.id || (!c.front && !c.back)) continue;
+      // Filter MUST match exportAnki/exportAllAnki — only front-bearing cards
+      // actually reach Anki, so back-only or empty placeholder cards should
+      // never trigger a "needs re-export" prompt here.
+      if (!c || !c.id || !c.front || !c.front.trim()) continue;
       const ankiId = ankiCardKey(t, c);
       const stored = snap[ankiId];
       if (stored === undefined || stored !== cardContentHash(c.front, c.back)) {
@@ -1735,14 +1727,11 @@ async function exportAnki(topic) {
     toast("Keine Karten mit Inhalt", "warn");
     return;
   }
-  // Export-awareness: remember (for this student) which cards reached Anki, so a
-  // later deletion of one of them produces a cleanup tombstone.
-  markExported(cards.map(c => c.id));
-  // Snapshot card content at export time → enables drift detection on next pull.
-  snapshotExport(topic, cards);
   // deckId is derived from topic.id so renaming the topic updates the existing
   // Anki deck name instead of producing a duplicate deck on re-import.
-  await downloadApkg({ deckId: "topic:" + topic.id, deckName, cards });
+  const ok = await downloadApkg({ deckId: "topic:" + topic.id, deckName, cards });
+  if (!ok) return; // download/server failed → don't claim we exported
+  recordExport([{ topicId: topic.id, cards }]);
   refreshSync();
 }
 
@@ -1750,7 +1739,7 @@ async function exportAllAnki() {
   const decks = state.topics
     .filter(t => t.cards && t.cards.length && t.cards.some(c => c.front && c.front.trim()))
     .map(t => ({
-      topic: t, // kept on the client side for snapshotExport, stripped before fetch
+      topic: t,
       id: "topic:" + t.id,
       name: "BWL Klausur::" + (t.title || "Unbenannt"),
       cards: t.cards.filter(c => c.front && c.front.trim()).map(c => ({ id: ankiCardKey(t, c), front: c.front, back: c.back || "" }))
@@ -1759,13 +1748,34 @@ async function exportAllAnki() {
     toast("Keine Karteikarten in keinem Thema vorhanden", "warn");
     return;
   }
-  // Export-awareness: mark every exported card across all decks for this student.
-  markExported(decks.flatMap(d => d.cards.map(c => c.id)));
-  for (const d of decks) snapshotExport(d.topic, d.cards);
   // Strip the local-only `topic` field before sending to the API.
   const apiDecks = decks.map(d => ({ id: d.id, name: d.name, cards: d.cards }));
-  await downloadApkg({ decks: apiDecks });
+  const ok = await downloadApkg({ decks: apiDecks });
+  if (!ok) return;
+  // Single batched localStorage write for all decks: markExported + snapshot
+  // in one read-modify-save instead of one per topic.
+  recordExport(decks.map(d => ({ topicId: d.topic.id, cards: d.cards })));
   refreshSync();
+}
+
+// One read-modify-save covering markExported + snapshotExport for any number
+// of decks. Used by every export pathway so we always update state in one
+// shot after a confirmed-successful download.
+function recordExport(exports) {
+  const store = loadAnkiLocal();
+  let changed = false;
+  for (const { topicId, cards } of exports) {
+    if (!topicId) continue;
+    for (const c of cards) {
+      if (c && c.id && !store.exported.includes(c.id)) {
+        store.exported.push(c.id);
+        changed = true;
+      }
+    }
+    store.topicExportCards[topicId] = buildSnapshotMap(cards);
+    changed = true;
+  }
+  if (changed) saveAnkiLocal(store);
 }
 
 // Split a Spruch into front/back for Anki
@@ -1822,19 +1832,17 @@ async function exportLudolphAnki() {
     const fb = splitSpruch(s.text);
     return fb ? { id: "ludolph:" + s.id, front: fb.front, back: fb.back } : null;
   }).filter(Boolean);
-  // Mark every exported Spruch ankiId + snapshot the deck so future drift
-  // (edited Spruch, added Spruch, deleted Spruch) is detected just like for
-  // topic cards. Stored under the pseudo-topic "ludolph" in topicExportCards.
-  markExported(cards.map(c => c.id));
-  const store = loadAnkiLocal();
-  const map = {};
-  for (const c of cards) map[c.id] = cardContentHash(c.front, c.back);
-  store.topicExportCards["ludolph"] = map;
-  saveAnkiLocal(store);
-  await downloadApkg({ deckId: "ludolph", deckName: "Ludolph Sprüche", cards });
+  const ok = await downloadApkg({ deckId: "ludolph", deckName: "Ludolph Sprüche", cards });
+  if (!ok) return;
+  // Snapshot under the "ludolph" pseudo-topic so drift detection (edited /
+  // added / deleted Spruch) works the same way as for topic cards.
+  recordExport([{ topicId: "ludolph", cards }]);
   refreshSync();
 }
 
+// Returns true if the .apkg was successfully generated AND the browser
+// download was triggered, false otherwise (network/server error). Callers
+// use the result to decide whether to update local export-state.
 async function downloadApkg(body) {
   try {
     toast("Generiere .apkg…");
@@ -1858,8 +1866,10 @@ async function downloadApkg(body) {
     a.href = url; a.download = filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
     toast("Export fertig ✓", "ok");
+    return true;
   } catch (e) {
     toast("Export fehlgeschlagen: " + e.message, "err");
+    return false;
   }
 }
 
