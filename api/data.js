@@ -7,19 +7,19 @@ const gh = require("./_github.js");
 const DATA_FILENAME = "klausur-data.js";
 const DEFAULTS = {
   topics: [
-    { title: "A short Time Travel",         location: "Satz 1, S. 43",   notes: "", attachments: [] },
-    { title: "SWOT-Analyse",                 location: "Satz 1, S. 86",   notes: "", attachments: [] },
-    { title: "Nutzwertanalyse",              location: "Satz 1, S. 99",   notes: "", attachments: [] },
-    { title: "Rechtsformen",                 location: "Satz 1, S. 109",  notes: "", attachments: [] },
-    { title: "Unternehmensverbund",          location: "Satz 1, S. 159",  notes: "", attachments: [] },
-    { title: "Due Diligence",                location: "Satz 1, S. 166",  notes: "", attachments: [] },
-    { title: "Standardmodell Management",    location: "Satz 2, S. 10",   notes: "", attachments: [] },
-    { title: "Portfoliomethodik",            location: "Satz 2, S. 46",   notes: "", attachments: [] },
-    { title: "Kennziffern / Bilanzanalyse",  location: "Satz 2, S. 95",   notes: "", attachments: [] },
-    { title: "Balanced Scorecard",           location: "Satz 2, S. 87",   notes: "", attachments: [] },
-    { title: "XY Theory",                    location: "Satz 2, S. 177",  notes: "", attachments: [] },
+    { title: "A short Time Travel",         location: "Skript 1, S. 43",   notes: "", attachments: [] },
+    { title: "SWOT-Analyse",                 location: "Skript 1, S. 86",   notes: "", attachments: [] },
+    { title: "Nutzwertanalyse",              location: "Skript 1, S. 99",   notes: "", attachments: [] },
+    { title: "Rechtsformen",                 location: "Skript 1, S. 109",  notes: "", attachments: [] },
+    { title: "Unternehmensverbund",          location: "Skript 1, S. 159",  notes: "", attachments: [] },
+    { title: "Due Diligence",                location: "Skript 1, S. 166",  notes: "", attachments: [] },
+    { title: "Standardmodell Management",    location: "Skript 2, S. 10",   notes: "", attachments: [] },
+    { title: "Portfoliomethodik",            location: "Skript 2, S. 46",   notes: "", attachments: [] },
+    { title: "Kennziffern / Bilanzanalyse",  location: "Skript 2, S. 95",   notes: "", attachments: [] },
+    { title: "Balanced Scorecard",           location: "Skript 2, S. 87",   notes: "", attachments: [] },
+    { title: "XY Theory",                    location: "Skript 2, S. 177",  notes: "", attachments: [] },
     { title: "Blue Ocean",                   location: "Separate Datei",  notes: "", attachments: [] },
-    { title: "Herzberg + Maslow",            location: "Satz 2, S. 112",  notes: "", attachments: [] }
+    { title: "Herzberg + Maslow",            location: "Skript 2, S. 112",  notes: "", attachments: [] }
   ],
   ludolph: []
   // Note: Anki deletion/cleanup state is per-student and lives in each browser's

@@ -3,7 +3,7 @@ window.KLAUSUR_DATA = {
   "topics": [
     {
       "title": "SWOT-Analyse",
-      "location": "Satz 1, S. 86",
+      "location": "Skript 1, S. 86",
       "notes": "",
       "attachments": [
         {
@@ -18,7 +18,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Nutzwertanalyse",
-      "location": "Satz 1, S. 99",
+      "location": "Skript 1, S. 99",
       "notes": "",
       "attachments": [
         {
@@ -33,7 +33,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Rechtsformen",
-      "location": "Satz 1, S. 109",
+      "location": "Skript 1, S. 109",
       "notes": "",
       "attachments": [],
       "id": "cijrjc8g3rto",
@@ -252,7 +252,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Unternehmensverbund",
-      "location": "Satz 1, S. 159",
+      "location": "Skript 1, S. 159",
       "notes": "",
       "attachments": [
         {
@@ -267,7 +267,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Due Diligence",
-      "location": "Satz 1, S. 166",
+      "location": "Skript 1, S. 166",
       "notes": "",
       "attachments": [
         {
@@ -282,7 +282,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Standardmodell Management",
-      "location": "Satz 2, S. 10",
+      "location": "Skript 2, S. 10",
       "notes": "",
       "attachments": [],
       "id": "axftssp23rto",
@@ -290,7 +290,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Portfoliomethodik / BCG-Matrix",
-      "location": "Satz 2, S. 46",
+      "location": "Skript 2, S. 46",
       "notes": "",
       "attachments": [],
       "id": "jmy4y2j23rto",
@@ -298,7 +298,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Kennziffern / Bilanzanalyse",
-      "location": "Satz 2, S. 95",
+      "location": "Skript 2, S. 95",
       "notes": "",
       "attachments": [
         {
@@ -313,7 +313,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Balanced Scorecard",
-      "location": "Satz 2, S. 87",
+      "location": "Skript 2, S. 87",
       "notes": "",
       "attachments": [],
       "id": "bd90u8is3rto",
@@ -321,7 +321,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "XY Theory",
-      "location": "Satz 2, S. 177",
+      "location": "Skript 2, S. 177",
       "notes": "",
       "attachments": [],
       "id": "lnwrrgeu3rto",
@@ -344,7 +344,7 @@ window.KLAUSUR_DATA = {
     },
     {
       "title": "Herzberg + Maslow",
-      "location": "Satz 2, S. 112",
+      "location": "Skript 2, S. 112",
       "notes": "",
       "attachments": [],
       "id": "typl0gob3rto",
