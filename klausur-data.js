@@ -14,18 +14,7 @@ window.KLAUSUR_DATA = {
         }
       ],
       "id": "imc4ee9j3rto",
-      "cards": [
-        {
-          "id": "bwxw91my3zos",
-          "front": "testkarte",
-          "back": "tsdkgnsg"
-        },
-        {
-          "id": "maq6wy234tev",
-          "front": "fdsf",
-          "back": "sdfsdfsdf"
-        }
-      ]
+      "cards": []
     },
     {
       "title": "Nutzwertanalyse",
@@ -432,6 +421,6 @@ window.KLAUSUR_DATA = {
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T16:11:42.430Z"
+    "lastSaved": "2026-06-02T16:12:40.587Z"
   }
 };
