@@ -14,13 +14,7 @@ window.KLAUSUR_DATA = {
         }
       ],
       "id": "u3cjti8e3rto",
-      "cards": [
-        {
-          "id": "nlz3a1tj4lb7",
-          "front": "Test Ankikarte Vorderseite",
-          "back": "Test Ankikarte Rückseite"
-        }
-      ]
+      "cards": []
     },
     {
       "title": "SWOT-Analyse",
@@ -441,8 +435,18 @@ window.KLAUSUR_DATA = {
       "height": "2px"
     }
   ],
-  "deletedCards": [],
+  "deletedCards": [
+    {
+      "ankiId": "u3cjti8e3rto:nlz3a1tj4lb7",
+      "guid": "pending:u3cjti8e3rto:nlz3a1tj4lb7",
+      "topicTitle": "A short Time Travel",
+      "deckName": "BWL - A short Time Travel",
+      "front": "Test Ankikarte Vorderseite",
+      "back": "Test Ankikarte Rückseite",
+      "deletedAt": "2026-06-02T14:49:56.129Z"
+    }
+  ],
   "_meta": {
-    "lastSaved": "2026-06-02T14:47:44.762Z"
+    "lastSaved": "2026-06-02T14:49:59.852Z"
   }
 };
