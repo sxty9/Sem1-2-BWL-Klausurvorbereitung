@@ -137,20 +137,20 @@
     cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 6px;
   }
   .attachment .rm:hover { color: var(--danger); }
-  .attach-menu { position: relative; display: inline-block; }
-  .attach-menu .menu {
-    position: absolute; top: 100%; left: 0; margin-top: 4px;
+  .attach-menu { display: inline-block; }
+  .attach-menu-popup {
+    position: fixed;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
     box-shadow: var(--shadow);
-    min-width: 260px; max-width: 380px; max-height: 320px; overflow: auto;
-    z-index: 100; padding: 4px;
+    min-width: 260px; max-width: 380px; max-height: 320px; overflow-y: auto;
+    z-index: 1000; padding: 4px;
   }
-  .attach-menu .menu button {
+  .attach-menu-popup button {
     width: 100%; text-align: left; border: none; background: transparent;
     padding: 7px 10px; border-radius: 6px; font-size: 13px;
   }
-  .attach-menu .menu button:hover { background: var(--border); }
-  .attach-menu .menu .label { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .5px; }
+  .attach-menu-popup button:hover { background: var(--border); }
+  .attach-menu-popup .label { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .5px; }
   .topic .actions { margin-left: auto; display: flex; gap: 6px; }
 
   .add-row {
@@ -179,8 +179,8 @@
     border: 1px dashed transparent;
     color: var(--text); font-size: 14px; font-family: inherit;
     padding: 6px 8px; border-radius: 6px;
-    resize: vertical; min-height: 36px; outline: none;
-    line-height: 1.45;
+    resize: none; min-height: 36px; outline: none;
+    line-height: 1.45; overflow: hidden;
   }
   .spruch textarea:hover { border-color: var(--border); }
   .spruch textarea:focus { border-color: var(--accent); background: var(--panel-2); border-style: solid; }
@@ -241,6 +241,7 @@
   <div class="toolbar">
     <span class="status-pill" id="statusPill">…</span>
     <button class="ghost small" id="btnReload" title="Neu laden">↻</button>
+    <button class="ghost small" id="btnDiscard" style="display:none">Verwerfen</button>
     <button class="primary save-btn" id="btnSave"><span class="dot"></span><span id="saveLabel">Gespeichert</span></button>
   </div>
 </header>
@@ -332,14 +333,17 @@ function updateSaveButton() {
   const btn = $("#btnSave");
   const label = $("#saveLabel");
   const dot = btn.querySelector(".dot");
+  const discard = $("#btnDiscard");
   if (dirty) {
     btn.disabled = false;
     label.textContent = "Speichern";
     dot.style.background = "#0f172a";
+    discard.style.display = "";
   } else {
     btn.disabled = true;
     label.textContent = "✓ Gespeichert";
     dot.style.background = "transparent";
+    discard.style.display = "none";
   }
 }
 
@@ -580,9 +584,9 @@ function renderAttachments(container, topic) {
 }
 
 function openAttachMenu(anchor, topic) {
-  document.querySelectorAll(".attach-menu .menu").forEach(m => m.remove());
+  document.querySelectorAll(".attach-menu-popup").forEach(m => m.remove());
   const menu = document.createElement("div");
-  menu.className = "menu";
+  menu.className = "attach-menu-popup";
 
   const localBtn = document.createElement("button");
   localBtn.textContent = "📤 Lokale Datei hochladen…";
@@ -610,9 +614,24 @@ function openAttachMenu(anchor, topic) {
     });
   }
 
-  anchor.appendChild(menu);
+  // Position fixed relative to the anchor button, escaping overflow:hidden panels
+  document.body.appendChild(menu);
+  const rect = anchor.getBoundingClientRect();
+  const menuH = menu.offsetHeight;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const top = spaceBelow >= menuH || spaceBelow >= 120
+    ? rect.bottom + 4
+    : rect.top - menuH - 4;
+  menu.style.top = Math.max(8, top) + "px";
+  menu.style.left = Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8) + "px";
+
   setTimeout(() => {
-    const close = e => { if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener("click", close); } };
+    const close = e => {
+      if (!menu.contains(e.target) && e.target !== anchor) {
+        menu.remove();
+        document.removeEventListener("click", close);
+      }
+    };
     document.addEventListener("click", close);
   }, 0);
 }
@@ -706,6 +725,7 @@ async function reload() {
 // ============================================================
 
 $("#btnSave").addEventListener("click", save);
+$("#btnDiscard").addEventListener("click", reload);
 $("#btnReload").addEventListener("click", reload);
 
 $("#btnAddTopic").addEventListener("click", addTopicFromInput);
