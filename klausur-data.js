@@ -418,9 +418,30 @@ window.KLAUSUR_DATA = {
       "id": "dgd6x4ef710x",
       "text": "Management ist ein totes Pferd.",
       "height": "2px"
+    },
+    {
+      "id": "agi2smavg9uq",
+      "text": "Die einen Dinge sind kompliziert, die einen mehr, die anderen weniger."
+    },
+    {
+      "id": "8pfmxlhdgn7a",
+      "text": "Pfeift der Wind vom Berg, so pfeift er durch die Burg"
+    },
+    {
+      "id": "6yb0ex69gwm5",
+      "text": "Tiefe Tunnel graben und Getreidevorräte anlegen",
+      "height": "55px"
+    },
+    {
+      "id": "lgua2ghqhguf",
+      "text": "Banken und Banditen fangen beide mit B an"
+    },
+    {
+      "id": "wttl2htmhn1k",
+      "text": "Schlimmer als eine Bank auszurauben, ist es, eine Bank zu gründen"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-02T17:26:20.044Z"
+    "lastSaved": "2026-06-04T11:45:20.369Z"
   }
 };
