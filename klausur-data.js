@@ -421,8 +421,8 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "agi2smavg9uq",
-      "text": "Die einen Dinge sind kompliziert, die einen mehr, die anderen weniger.",
-      "height": "99px"
+      "text": "Alle Dinge sind kompliziert, die einen mehr, die anderen weniger.",
+      "height": "55px"
     },
     {
       "id": "8pfmxlhdgn7a",
@@ -442,9 +442,55 @@ window.KLAUSUR_DATA = {
       "id": "wttl2htmhn1k",
       "text": "Schlimmer als eine Bank auszurauben, ist es, eine Bank zu gründen",
       "height": "106px"
+    },
+    {
+      "id": "ptig1a0azv61",
+      "text": "Think different, stay foolish"
+    },
+    {
+      "id": "17tnhjvd0rf5",
+      "text": "Kosten - Qualität - Zeit"
+    },
+    {
+      "id": "esbe2iwx13tg",
+      "text": "No risk, no fun"
+    },
+    {
+      "id": "k93we8jq1b9y",
+      "text": "Das einzige, was ich weiß, ist das, dass ich nichts weiß."
+    },
+    {
+      "id": "l5w0ta2t1s6a",
+      "text": "Too big to fail"
+    },
+    {
+      "id": "la1k26id1xb0",
+      "text": "KPMG - Keiner prüft mehr genau"
+    },
+    {
+      "id": "xne15tqj23n9",
+      "text": "Heute ist der erste Tag vom Rest des Lebens"
+    },
+    {
+      "id": "m5u3gqbz2c3w",
+      "text": "Die Wahrheit muss man sich nicht merken."
+    },
+    {
+      "id": "p7iyjze82phd",
+      "text": "Legal, illegal, scheiß-egal"
+    },
+    {
+      "id": "ggtx6ke92xmf",
+      "text": "Je stärker die fünf Triebkräfte sind, desto unattraktiver wird unser Markt",
+      "height": "62px"
+    },
+    {
+      "id": "beczhwj54b0n",
+      "text": "\"Geh in den Wald und stirb!\"",
+      "height": "55px"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-04T11:49:25.915Z"
+    "lastSaved": "2026-06-04T12:03:43.062Z"
   }
 };
