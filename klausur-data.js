@@ -421,11 +421,13 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "agi2smavg9uq",
-      "text": "Die einen Dinge sind kompliziert, die einen mehr, die anderen weniger."
+      "text": "Die einen Dinge sind kompliziert, die einen mehr, die anderen weniger.",
+      "height": "99px"
     },
     {
       "id": "8pfmxlhdgn7a",
-      "text": "Pfeift der Wind vom Berg, so pfeift er durch die Burg"
+      "text": "Pfeift der Wind vom Berg, so pfeift er durch die Burg",
+      "height": "2px"
     },
     {
       "id": "6yb0ex69gwm5",
@@ -438,10 +440,11 @@ window.KLAUSUR_DATA = {
     },
     {
       "id": "wttl2htmhn1k",
-      "text": "Schlimmer als eine Bank auszurauben, ist es, eine Bank zu gründen"
+      "text": "Schlimmer als eine Bank auszurauben, ist es, eine Bank zu gründen",
+      "height": "106px"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-04T11:45:20.369Z"
+    "lastSaved": "2026-06-04T11:49:25.915Z"
   }
 };
