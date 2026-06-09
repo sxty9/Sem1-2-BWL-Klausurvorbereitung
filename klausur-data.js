@@ -488,9 +488,13 @@ window.KLAUSUR_DATA = {
       "id": "beczhwj54b0n",
       "text": "\"Geh in den Wald und stirb!\"",
       "height": "55px"
+    },
+    {
+      "id": "ok6rk1sdf023",
+      "text": "BWL Froschperspektive, VWL Vogelperspektive"
     }
   ],
   "_meta": {
-    "lastSaved": "2026-06-04T12:03:43.062Z"
+    "lastSaved": "2026-06-09T10:41:31.264Z"
   }
 };
