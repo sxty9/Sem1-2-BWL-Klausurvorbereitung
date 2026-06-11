@@ -41,212 +41,312 @@ window.KLAUSUR_DATA = {
         {
           "id": "rf01",
           "front": "Was ist eine Rechtsform?",
-          "back": "Das juristische Kleid einer Wirtschaftseinheit — alle Regelungen, die einen Betrieb zu einer rechtlich fassbaren Einheit machen. Geregelt in BGB, HGB, GmbHG, AktG und GenG."
+          "back": "Das „juristische Kleid\" einer Wirtschaftseinheit — alle Regelungen, die einen Betrieb über seine Eigenschaft als Wirtschaftseinheit hinaus zu einer rechtlich fassbaren Einheit machen. Vorschriften in 5 Gesetzbüchern: BGB, HGB, GmbHG, AktG und GenG. Wegen dispositiven Rechts hat der Gesellschaftsvertrag große Bedeutung."
         },
         {
           "id": "rf02",
-          "front": "Was ist der Unterschied zwischen Personengesellschaften und Kapitalgesellschaften?",
-          "back": "Personengesellschaften: keine eigene Rechtspersönlichkeit, Gesellschafter haften persönlich.\nKapitalgesellschaften: juristische Person mit eigener Rechtspersönlichkeit, Haftung nur mit Gesellschaftsvermögen."
+          "front": "Was ist der Unterschied zwischen Personen- und Kapitalgesellschaften?",
+          "back": "Personengesellschaft: KEINE eigene Rechtspersönlichkeit; mindestens ein Gesellschafter haftet persönlich (oft mit Privatvermögen).\nKapitalgesellschaft: juristische Person mit eigener Rechtspersönlichkeit; Haftung nur mit Gesellschaftsvermögen; handelt durch ihre Organe."
         },
         {
           "id": "rf03",
-          "front": "Nenne alle Personengesellschaften.",
-          "back": "Einzelunternehmung, GbR, OHG, KG, Stille Gesellschaft, Partnerschaftsgesellschaft"
+          "front": "Welche Rechtsformen sind klausurrelevant?",
+          "back": "Personengesellschaften: Einzelunternehmung, OHG, KG.\nKapitalgesellschaften: GmbH, UG (haftungsbeschränkt), AG.\nMischform: GmbH & Co. KG."
         },
         {
           "id": "rf04",
-          "front": "Nenne alle Kapitalgesellschaften.",
-          "back": "GmbH (inkl. UG haftungsbeschränkt), AG, KGaA"
+          "front": "Was ist eine juristische Person?",
+          "back": "Eine Gesellschaft mit eigener Rechtspersönlichkeit. Sie ist rechts-, aber NICHT geschäftsfähig — d.h. Trägerin von Rechten und Pflichten, hat Vermögen, kann als Erbe eingesetzt werden, kann klagen und verklagt werden. Sie handelt durch ihre Organe (Geschäftsführer, Vorstand, Aufsichtsrat, Hauptversammlung, Gesellschafterversammlung)."
         },
         {
           "id": "rf05",
-          "front": "Einzelunternehmung: Haftung?",
-          "back": "Unbeschränkt — mit dem gesamten Privat- und Betriebsvermögen."
+          "front": "Was ist eine Einzelunternehmung?",
+          "back": "Personengesellschaft mit nur einem Inhaber. Formlose Gründung; bei kaufmännisch eingerichtetem Geschäftsbetrieb Eintragung ins Handelsregister erforderlich. Firma muss Familiennamen + mindestens einen ausgeschriebenen Vornamen enthalten. Kleingewerbetreibende (keine Kaufmannseigenschaft, keine doppelte Buchführung) brauchen keinen HR-Eintrag (z.B. „Mini-Kiosk, wo Oma ab und zu hilft\")."
         },
         {
           "id": "rf06",
-          "front": "Einzelunternehmung: Mindestkapital?",
-          "back": "Kein Mindestkapital erforderlich."
+          "front": "Einzelunternehmung: Haftung?",
+          "back": "Unbeschränkt — der Einzelunternehmer haftet von Beginn an mit seinem gesamten Privat- UND Betriebsvermögen. Er entscheidet allein."
         },
         {
           "id": "rf07",
-          "front": "Einzelunternehmung: Gewinnverteilung?",
-          "back": "Der gesamte Gewinn steht dem Inhaber alleine zu."
+          "front": "Einzelunternehmung: Mindestkapital & Gewinn?",
+          "back": "Kein Mindestkapital erforderlich. Eigenkapital erfolgt als Einlage des Inhabers; Eigenkapitalerhöhung über Aufnahme eines stillen Gesellschafters möglich. Der gesamte Gewinn steht dem Inhaber allein zu (muss nicht geteilt werden)."
         },
         {
           "id": "rf08",
-          "front": "Was ist eine GbR?",
-          "back": "Gesellschaft bürgerlichen Rechts — vertraglicher Zusammenschluss (auch konkludent möglich) zur Förderung eines gemeinsamen Zwecks. Keine Eintragung ins Handelsregister, keine Firma."
+          "front": "Was ist Gütertrennung — und warum wichtig für Einzelunternehmer? (JOT!)",
+          "back": "Vertragliche Vereinbarung zwischen Ehepartnern (statt Zugewinngemeinschaft), so dass kein gemeinsames Vermögen entsteht.\n👉 Wichtig: Da der Einzelunternehmer unbeschränkt mit seinem Privatvermögen haftet, schützt die Gütertrennung den unbeteiligten Ehepartner / Familienmitglieder vor dem Haftungsdurchgriff der Gläubiger."
         },
         {
           "id": "rf09",
-          "front": "GbR: Haftung?",
-          "back": "Alle Gesellschafter haften persönlich und unbeschränkt mit ihrem gesamten Privatvermögen — auch noch 5 Jahre nach Ausstieg."
+          "front": "Einzelunternehmung: Vorteile?",
+          "back": "• Kein Mindestkapital\n• Gewinne müssen nicht geteilt werden\n• Größtmöglicher Gestaltungsspielraum\n• Beginn als Kleingewerbetreibender möglich\n• Minimale Gründungskosten (kein Notarakt)\n• Raschere Anpassung an Marktveränderungen"
         },
         {
           "id": "rf10",
-          "front": "GbR: Gewinnverteilung?",
-          "back": "Gleiche Gewinnaufteilung unter den Gesellschaftern (§ 722 Abs. 1 BGB), sofern nicht anders vereinbart."
+          "front": "Einzelunternehmung: Nachteile?",
+          "back": "• Haftung mit dem gesamten Vermögen (privat UND geschäftlich)\n• Erweiterung der Kapitalbasis richtet sich nach dem eigenen Vermögen"
         },
         {
           "id": "rf11",
-          "front": "Wann wird eine GbR automatisch zur OHG?",
-          "back": "Wenn die GbR als Handelsgewerbe geführt wird und die Bilanzierungsgrenzen überschreitet (30.000 € Gewinn oder 350.000 € Umsatz)."
+          "front": "Was ist eine OHG?",
+          "back": "Offene Handelsgesellschaft — Personengesellschaft mit mindestens 2 Gesellschaftern. Eintragung ins Handelsregister zwingend (= immer Kaufmann). Firma muss den Namen mind. eines Gesellschafters mit Zusatz enthalten (z.B. „Fritz Meier & Co.\"). Nur von Vollkaufleuten wählbar."
         },
         {
           "id": "rf12",
-          "front": "Was ist eine OHG?",
-          "back": "Offene Handelsgesellschaft — mindestens 2 Gesellschafter, Eintragung ins Handelsregister zwingend. Nur von Vollkaufleuten wählbar."
+          "front": "OHG: Haftung?",
+          "back": "Unbeschränkt und SOLIDARISCH — jeder Gesellschafter haftet mit seinem gesamten Privat- und Betriebsvermögen. Es gibt KEINE Einrede zur Teilung."
         },
         {
           "id": "rf13",
-          "front": "OHG: Haftung?",
-          "back": "Unbeschränkt, solidarisch — jeder Gesellschafter haftet mit seinem gesamten Privat- und Betriebsvermögen. Keine Einrede zur Teilung."
+          "front": "Was bedeutet Solidarhaftung (OHG)?",
+          "back": "Jeder einzelne Gesellschafter haftet voll für alle Verbindlichkeiten der Gesellschaft — auch wenn sie von anderen Gesellschaftern eingegangen wurden und er nichts davon wusste. Gläubiger können jeden Gesellschafter direkt in Anspruch nehmen. Er kann sich nicht darauf berufen, dass die OHG aus mehreren Gesellschaftern besteht (keine Einrede zur Teilung)."
         },
         {
           "id": "rf14",
-          "front": "Was bedeutet Solidarhaftung?",
-          "back": "Jeder Gesellschafter haftet voll für alle Verbindlichkeiten der Gesellschaft, auch wenn sie von anderen Gesellschaftern eingegangen wurden. Gläubiger können jeden einzelnen direkt in Anspruch nehmen."
+          "front": "OHG: Gewinnverteilung (gesetzlich)?",
+          "back": "Einlagen werden mit 4 % verzinst (sofern Gewinn ausreicht); der Rest wird nach Köpfen verteilt. Gilt nur, soweit der Gesellschaftsvertrag nichts anderes regelt."
         },
         {
           "id": "rf15",
-          "front": "OHG: Gewinnverteilung (gesetzlich)?",
-          "back": "Einlagen werden mit 4% verzinst (sofern Gewinn ausreicht), der Rest wird nach Köpfen verteilt — sofern der Gesellschaftsvertrag nichts anderes regelt."
+          "front": "OHG: Vorteile?",
+          "back": "• Kein Mindestkapital\n• Höheres Ansehen bei Kreditinstituten als die Einzelunternehmung\n• Jeder beteiligte Gesellschafter hat hohes Maß an Mitbestimmung"
         },
         {
           "id": "rf16",
-          "front": "Was ist eine KG?",
-          "back": "Kommanditgesellschaft — Personengesellschaft mit zwei Arten von Gesellschaftern: Komplementäre (Vollhafter) und Kommanditisten (Teilhafter)."
+          "front": "OHG: Nachteile?",
+          "back": "• Kaufmannseigenschaft erforderlich → Gründung mit Formalitäten, nur für Vollkaufleute wählbar\n• Handelsregistereintrag zwingend\n• Alle Gesellschafter haften uneingeschränkt mit Privatvermögen"
         },
         {
           "id": "rf17",
-          "front": "KG: Wer ist der Komplementär und wie haftet er?",
-          "back": "Der Komplementär (Vollhafter) führt die Geschäfte und haftet unbeschränkt mit seinem gesamten Privatvermögen."
+          "front": "Was ist eine KG?",
+          "back": "Kommanditgesellschaft (§§ 161 ff. HGB) — Personengesellschaft. Geeignet, wenn Unternehmer „alleiniger Chef\" bleiben aber zusätzliches Startkapital aufnehmen wollen. Hat IMMER zwei Arten von Gesellschaftern: Komplementäre + Kommanditisten. Eintragung ins Handelsregister mit Namen und Einlagen beider Gruppen. Im Firmennamen muss „KG\" stehen."
         },
         {
           "id": "rf18",
-          "front": "KG: Wer ist der Kommanditist und wie haftet er?",
-          "back": "Der Kommanditist haftet nur bis zur Höhe seiner Einlage. Wurde die Einlage durch Verluste gemindert, muss er sie durch Gewinne wieder auffüllen bevor er sich Gewinne auszahlen lassen kann."
+          "front": "KG: Wer ist der Komplementär und wie haftet er?",
+          "back": "Der Komplementär = Vollhafter. Führt die Geschäfte und haftet unbeschränkt mit seinem gesamten Vermögen inkl. PRIVATVERMÖGEN."
         },
         {
           "id": "rf19",
-          "front": "KG: Was passiert wenn der einzige Kommanditist ausscheidet?",
-          "back": "Verbleiben mehrere Gesellschafter → wird automatisch zur OHG. Verbleibt nur ein Komplementär → wird zur Einzelgesellschaft."
+          "front": "KG: Wer ist der Kommanditist und wie haftet er?",
+          "back": "Der Kommanditist = Teilhafter. Haftet nur bis zur Höhe seiner EINLAGE. Wurde die Einlage durch Verluste gemindert, muss er sie erst durch Gewinnanteile wieder auffüllen, BEVOR er sich Gewinne auszahlen lassen kann — sonst lebt die Haftung in Höhe der ausgezahlten Beträge wieder auf."
         },
         {
           "id": "rf20",
-          "front": "KG: Gewinnverteilung (gesetzlich)?",
-          "back": "4% auf den Kapitalanteil, der Rest in einem „angemessenen Verhältnis\" (§§ 167-169 HGB)."
+          "front": "KG: Was passiert, wenn der einzige Kommanditist ausscheidet?",
+          "back": "• Verbleiben mehrere Gesellschafter → KG wird automatisch zur OHG\n• Verbleibt nur ein Komplementär → wird zur Einzelgesellschaft (Einzelunternehmung)"
         },
         {
           "id": "rf21",
-          "front": "Was ist eine Stille Gesellschaft?",
-          "back": "Eine reine Innengesellschaft — ein stiller Gesellschafter beteiligt sich mit einer Einlage am Handelsgewerbe eines anderen. Tritt nach außen nicht in Erscheinung. Kein Handelsregistereintrag."
+          "front": "KG: Gesetzliche Gewinnverteilung? (JOT: 4 %-Regel!)",
+          "back": "Nach §§ 167–169 HGB:\n• 4 % auf den Kapitalanteil (Vorabverzinsung)\n• Der Rest in einem „angemessenen Verhältnis\"\nGilt nur, soweit der Gesellschaftsvertrag nichts anderes regelt.\n👉 Spruch des Profs: „Kommanditisten suchen Komplementäre für Finanzierung\"."
         },
         {
           "id": "rf22",
-          "front": "Was ist eine atypische Stille Gesellschaft?",
-          "back": "Eine Stille Gesellschaft, bei der die Verlustbeteiligung für den stillen Gesellschafter vertraglich ausgeschlossen ist. Dann hat er im Konkursfall Anspruch auf Rückgewährung der Einlage."
+          "front": "KG: Vor- und Nachteile?",
+          "back": "Vorteile:\n• Kein Mindestkapital\n• Zusätzliches Eigenkapital über Kommanditisten\n• Große Unabhängigkeit der Komplementäre\n• Gründungsaufwand wie bei OHG\nNachteile:\n• Komplementär haftet mit gesamtem Privatvermögen\n• Weitere Nachteile wie OHG (Formalitäten, HR-Eintrag)"
         },
         {
           "id": "rf23",
-          "front": "Was ist eine Partnerschaftsgesellschaft?",
-          "back": "Gesellschaftsform ausschließlich für Freiberufler (PartGG seit 1.7.1995). 'Freiberufliche Schwester der OHG'. Unbeschränkte, solidarische Haftung (Ausnahme: bei klar abgrenzbarer persönlicher Auftragsbearbeitung haftet nur der beauftragte Partner). Eintragung ins Partnerschaftsregister."
+          "front": "Was ist eine GmbH?",
+          "back": "Gesellschaft mit beschränkter Haftung — Kapitalgesellschaft (juristische Person) mit eigener Rechtspersönlichkeit. Für die Verbindlichkeiten haftet den Gläubigern nur das Gesellschaftsvermögen (= Stammkapital). Handelsregistereintragung zwingend. Firmenname muss „GmbH\" oder „Gesellschaft mit beschränkter Haftung\" enthalten. Rechtsgrundlage: GmbH-Gesetz."
         },
         {
           "id": "rf24",
-          "front": "Was ist die PartGmbB?",
-          "back": "Partnerschaftsgesellschaft mit beschränkter Berufshaftung (seit 2013). Berufliche Fehler werden nur mit dem Gesellschaftsvermögen gehaftet, nicht mit dem Privatvermögen. Kürzel 'mbB' im Partnerschaftsregister."
+          "front": "GmbH: Mindeststammkapital? (JOT!)",
+          "back": "25.000 € Stammkapital — muss bei Gründung gegenüber dem NOTAR nachgewiesen werden.\n👉 Das Geld muss NICHT auf der Bank liegen bleiben — nur zum Nachweis. Danach kann es wieder in den Umlauf.\n👉 Alternativ seit 2008: UG (haftungsbeschränkt) als Einstieg ab 1 € (siehe § 5a GmbH-Gesetz)."
         },
         {
           "id": "rf25",
-          "front": "GmbH: Mindestkapital?",
-          "back": "25.000 € Stammkapital. Seit 2008 alternativ: UG (haftungsbeschränkt) ab 1 € möglich."
+          "front": "GmbH: Haftung?",
+          "back": "Beschränkt — nur das Gesellschaftsvermögen (Stammkapital) haftet gegenüber Dritten.\n👉 ABER: Strenge Geschäftsführerhaftung bei verspäteter Insolvenzanmeldung (§ 64 GmbHG). Bei Überschuldung/Zahlungsunfähigkeit muss der Geschäftsführer rechtzeitig Insolvenz anmelden, sonst persönliche Haftung."
         },
         {
           "id": "rf26",
-          "front": "GmbH: Haftung?",
-          "back": "Beschränkt — nur das Gesellschaftsvermögen (Stammkapital) haftet. Achtung: Strenge Geschäftsführerhaftung bei verspäteter Insolvenzanmeldung (§ 64 GmbHG)."
+          "front": "GmbH: Organe? (JOT — SEHR WICHTIG!)",
+          "back": "1. Gesellschafterversammlung\n2. Geschäftsführer (NICHT „Geschäftsführung\"!) — wird von der Gesellschafterversammlung gewählt\n3. (Aufsichtsrat) — nur zwingend bei MEHR ALS 500 Arbeitnehmern!\n👉 In der Klausur den Aufsichtsrat in KLAMMERN schreiben mit Hinweis „nur > 500 MA\"."
         },
         {
           "id": "rf27",
-          "front": "GmbH: Organe?",
-          "back": "1. Gesellschafterversammlung\n2. Geschäftsführer (von Gesellschafterversammlung gewählt)\n3. Aufsichtsrat (zwingend ab > 500 Arbeitnehmer)"
+          "front": "GmbH-Organ: Geschäftsführer oder Geschäftsführung? (KLAUSURFALLE — JOT!)",
+          "back": "Geschäftsführer! (NICHT „Geschäftsführung\".)\nDas zweite Organ der GmbH heißt Geschäftsführer (1 oder mehrere natürliche Personen, jeweils mit dieser Bezeichnung) — wird von der Gesellschafterversammlung bestellt."
         },
         {
           "id": "rf28",
-          "front": "GmbH: Gewinnverteilung?",
-          "back": "Im prozentualen Verhältnis der Gesellschaftsanteile. Gewinn kann auf Beschluss der Gesellschafterversammlung thesauriert werden."
+          "front": "Wann ist bei einer GmbH ein Aufsichtsrat zwingend? (JOT!)",
+          "back": "Nur bei MEHR ALS 500 Arbeitnehmern. Bei kleineren GmbHs ist der Aufsichtsrat NICHT erforderlich.\n👉 In der Klausur: Aufsichtsrat als Organ der GmbH in Klammern schreiben mit Hinweis „nur bei > 500 MA\"."
         },
         {
           "id": "rf29",
-          "front": "Was ist die UG (haftungsbeschränkt)?",
-          "back": "Die 'Mini-GmbH' seit 2008 (MoMiG). Stammkapital ab 1 € möglich. Pflicht: 25% des Jahresgewinns als Rücklage bis 25.000 € erreicht sind. Zwingender Rechtsformzusatz: 'UG (haftungsbeschränkt)'."
+          "front": "GmbH: Gewinnverteilung?",
+          "back": "Im prozentualen Verhältnis der Gesellschaftsanteile. Auf Beschluss der Gesellschafterversammlung kann der Gewinn auch thesauriert werden (zur Erhöhung der Eigenkapitalbasis)."
         },
         {
           "id": "rf30",
-          "front": "AG: Mindestkapital?",
-          "back": "50.000 € Grundkapital, zerlegt in Aktien."
+          "front": "Was ist die GmbH i. G.?",
+          "back": "GmbH IN GRÜNDUNG — die Gesellschaft ist noch nicht ins Handelsregister eingetragen.\n👉 Wichtig: In diesem Zeitraum haften die Gründer mit ihrem PRIVATVERMÖGEN. Erst nach HR-Eintragung greift die Haftungsbeschränkung."
         },
         {
           "id": "rf31",
-          "front": "AG: Haftung?",
-          "back": "Nur mit dem Gesellschaftsvermögen. Aktionäre haften nicht persönlich."
+          "front": "GmbH: Vor- und Nachteile?",
+          "back": "Vorteile:\n• Beschränkte Haftung gegenüber Dritten (nur mit den Einlagen)\nNachteile:\n• Aufwendige Gründungsformalitäten/-kosten (Notarakt!)\n• Aufwendige Buchführungsvorschriften\n• Strenge Geschäftsführerhaftung bei verspäteter Insolvenzanmeldung (Überschuldung/Zahlungsunfähigkeit, § 64 GmbHG)"
         },
         {
           "id": "rf32",
-          "front": "AG: Organe?",
-          "back": "1. Vorstand (Geschäftsführung)\n2. Aufsichtsrat (Überwachung, bestellt Vorstand)\n3. Hauptversammlung (alle Aktionäre, wählt Aktionärsvertreter im AR, mind. 1× pro Jahr)"
+          "front": "Was ist Illiquidität (Zahlungsunfähigkeit)? (JOT — klar definieren!)",
+          "back": "Die Unfähigkeit eines Unternehmens, fällige Zahlungsverpflichtungen TERMINGERECHT zu erfüllen. Bei juristischen Personen ist Illiquidität ein Insolvenzantragsgrund — der Geschäftsführer muss unverzüglich (spätestens 3 Wochen) Insolvenz anmelden, sonst persönliche Haftung (§ 64 GmbHG)."
         },
         {
           "id": "rf33",
-          "front": "AG: Aufsichtsrat-Zusammensetzung bei < 500 Mitarbeitern?",
-          "back": "Nur Vertreter der Anteilseigner (Aktionäre), keine Arbeitnehmervertreter."
+          "front": "Was ist Überschuldung?",
+          "back": "Das Vermögen des Unternehmens deckt die bestehenden Verbindlichkeiten nicht mehr (Schulden > Vermögen). Bei juristischen Personen grundsätzlich Insolvenzantragsgrund — ES SEI DENN, eine positive Fortführungsprognose liegt vor."
         },
         {
           "id": "rf34",
-          "front": "AG: Aufsichtsrat-Zusammensetzung bei > 500 Mitarbeitern?",
-          "back": "⅔ Anteilseigner, ⅓ Arbeitnehmer (Drittelbeteiligungsgesetz seit 2004)."
+          "front": "Was ist Insolvenz? (JOT — klar definieren!)",
+          "back": "Gerichtliches Verfahren zur gemeinschaftlichen Befriedigung der Gläubiger eines zahlungsunfähigen oder überschuldeten Unternehmens. Insolvenzantragsgründe:\n• Zahlungsunfähigkeit (Illiquidität)\n• drohende Zahlungsunfähigkeit\n• Überschuldung\nBei der GmbH muss der Geschäftsführer rechtzeitig (spätestens 3 Wochen) Insolvenz anmelden — sonst persönliche Haftung (§ 64 GmbHG)."
         },
         {
           "id": "rf35",
-          "front": "AG: Aufsichtsrat-Zusammensetzung bei > 2.000 Mitarbeitern?",
-          "back": "Paritätisch: je ½ Anteilseigner und ½ Arbeitnehmer (inkl. Gewerkschaftsvertreter) nach dem Mitbestimmungsgesetz von 1976."
+          "front": "Was ist eine positive Fortführungsprognose — und wer erstellt sie? (JOT!)",
+          "back": "Gutachterliche Aussage, dass das Unternehmen mit überwiegender Wahrscheinlichkeit in den nächsten ~12 Monaten durchgängig zahlungsfähig bleiben wird.\n👉 Erstellt von einem WIRTSCHAFTSPRÜFER.\n👉 Bei positiver Fortführungsprognose entfällt trotz rechnerischer Überschuldung die Insolvenzantragspflicht."
         },
         {
           "id": "rf36",
-          "front": "Welche Besonderheit hat die AG gegenüber allen anderen Rechtsformen?",
-          "back": "Sie ist die einzige Gesellschaftsform mit Zugang zum geregelten Eigenkapitalmarkt (Börse)."
+          "front": "Was ist die UG (haftungsbeschränkt)?",
+          "back": "„Unternehmergesellschaft (haftungsbeschränkt)\" — die „Mini-GmbH\" seit 2008 (MoMiG-Gesetz). Haftungsbeschränkte Einstiegsvariante mit Stammkapital ab 1 €. Zwingender Rechtsformzusatz: „UG (haftungsbeschränkt)\" oder „Unternehmergesellschaft (haftungsbeschränkt)\". Rechtsgrundlage: § 5a GmbH-Gesetz.\n👉 Ludolph-Spruch: „Banken und Banditen fangen mit B an\"."
         },
         {
           "id": "rf37",
-          "front": "Was ist eine Kleine AG?",
-          "back": "Seit 1994 ist die Ein-Mann-AG möglich (vorher mind. 5 Gründer). Ziel: AG auch für mittelständische Unternehmen attraktiv machen (z.B. für Generationswechsel)."
+          "front": "UG: Welche Rücklagepflicht besteht?",
+          "back": "Gesetzliche Pflicht: 25 % des Jahresgewinns (abzgl. Verlustvortrag des Vorjahres) sind als gesetzliche Rücklage in die Bilanz einzustellen — solange, bis das Mindeststammkapital der GmbH von 25.000 € erreicht ist. Ziel: schrittweise Aufstockung auf eine „echte\" GmbH."
         },
         {
           "id": "rf38",
-          "front": "Was ist eine GmbH & Co. KG?",
-          "back": "Eine KG, deren einziger Komplementär (Vollhafter) eine GmbH ist. Ergebnis: Faktisch beschränkte Haftung aller Beteiligten — die natürlichen Personen sind nur Kommanditisten."
+          "front": "Was ist eine AG?",
+          "back": "Aktiengesellschaft — Kapitalgesellschaft mit eigener Rechtspersönlichkeit (juristische Person). Wesentliches Merkmal: Zerlegung des Nominalkapitals (Grundkapital, mind. 50.000 €) in Aktien. Typische Rechtsform für Großunternehmen. EINZIGE Gesellschaftsform mit Zugang zum Kapitalmarkt (Börse). Eigenkapitalbeschaffung über Ausgabe von Aktien."
         },
         {
           "id": "rf39",
-          "front": "Vergleiche: Einzelunternehmung vs. GbR vs. OHG",
-          "back": "Einzelunternehmung: 1 Person, formlos, kein HR nötig.\nGbR: ≥ 2 Personen, formlos, kein HR, keine Kaufmannseigenschaft.\nOHG: ≥ 2 Vollkaufleute, HR-Eintrag zwingend, höheres Ansehen bei Banken."
+          "front": "AG: Mindestkapital & Haftung?",
+          "back": "Mindestkapital: 50.000 € Grundkapital (= Nominalkapital), zerlegt in Aktien.\nHaftung: nur mit dem Gesellschaftsvermögen. Aktionäre haften NICHT persönlich."
         },
         {
           "id": "rf40",
-          "front": "Welche Rechtsformen erfordern eine Eintragung ins Handelsregister?",
-          "back": "OHG, KG, GmbH, UG, AG, KGaA (= alle außer GbR, Stille Gesellschaft und Einzelunternehmung bei Kleingewerbe). Partnerschaftsgesellschaft → eigenes Partnerschaftsregister."
+          "front": "AG: Organe? (JOT — heißen ANDERS als bei GmbH!)",
+          "back": "1. Vorstand (Geschäftsführung — NICHT „Geschäftsführer\" wie bei GmbH!)\n2. Aufsichtsrat (Überwachung; bestellt den Vorstand) — bei der AG IMMER erforderlich\n3. Hauptversammlung (Vertretung ALLER Aktionäre; mind. 1× pro Jahr)"
         },
         {
           "id": "rf41",
-          "front": "Welche Rechtsformen haben KEIN Mindestkapital?",
-          "back": "Einzelunternehmung, GbR, OHG, KG, Stille Gesellschaft, Partnerschaftsgesellschaft. Die UG hat formal 1 € Minimum."
+          "front": "AG: Aufbau / Beziehungen zwischen den Organen?",
+          "back": "• Vorstand informiert Aufsichtsrat\n• Aufsichtsrat bestellt und überwacht Vorstand\n• Vorstand informiert Hauptversammlung\n• Hauptversammlung entlastet Vorstand\n• Hauptversammlung wählt die AKTIONÄRSvertreter im Aufsichtsrat"
         },
         {
           "id": "rf42",
-          "front": "Was ist eine juristische Person?",
-          "back": "Eine Gesellschaft mit eigener Rechtspersönlichkeit. Sie ist rechts- aber nicht geschäftsfähig — sie kann Vermögen haben, klagen und verklagt werden, handelt aber durch ihre Organe (Geschäftsführer, Vorstand, etc.)."
+          "front": "Wer sitzt in der Hauptversammlung der AG? (JOT!)",
+          "back": "AUSSCHLIESSLICH Vertreter der Aktionäre (Anteilseigner).\n👉 KEINE Arbeitnehmervertreter in der HV! Arbeitnehmervertreter sitzen nur im Aufsichtsrat (ab ≥ 500 MA).\n👉 Wichtiger Unterschied zur GmbH-Gesellschafterversammlung!"
+        },
+        {
+          "id": "rf43",
+          "front": "AG: Zusammensetzung Aufsichtsrat bei bis zu 499 Mitarbeitern?",
+          "back": "Aufsichtsrat besteht zu 100 % aus Vertretern der Anteilseigner (Aktionäre). Keine Arbeitnehmervertreter."
+        },
+        {
+          "id": "rf44",
+          "front": "AG: Zusammensetzung Aufsichtsrat ab 500 Mitarbeitern?",
+          "back": "⅔ Vertreter der Anteilseigner (Aktionäre) + ⅓ Vertreter der Arbeitnehmer. Geregelt im Drittelbeteiligungsgesetz (seit 1.7.2004)."
+        },
+        {
+          "id": "rf45",
+          "front": "AG: Zusammensetzung Aufsichtsrat bei mehr als 2.000 Mitarbeitern?",
+          "back": "PARITÄTISCH: je ½ Vertreter der Anteilseigner und ½ der Arbeitnehmer (inkl. Gewerkschaftsvertreter). Geregelt im Mitbestimmungsgesetz von 1976.\n👉 Ausnahme Montanindustrie (Bergbau/Eisen/Stahl) ab 1.000 MA: paritätische Besetzung + zusätzliche neutrale Person + Arbeitsdirektor (Montan-Mitbestimmungsgesetz)."
+        },
+        {
+          "id": "rf46",
+          "front": "Welche Besonderheit hat die AG gegenüber allen anderen Rechtsformen?",
+          "back": "Sie ist die EINZIGE Gesellschaftsform mit Zugang zum geregelten Eigenkapitalmarkt (Börse). Eigenkapitalbeschaffung erfolgt über Ausgabe von Aktien."
+        },
+        {
+          "id": "rf47",
+          "front": "Was ist eine „Kleine AG\"?",
+          "back": "Seit 1994 (Gesetz für kleine Aktiengesellschaften) ist die Ein-Mann-AG / Eine-Frau-AG möglich (vorher: Mindestzahl 5 Gründer). Ziel: AG-Form auch für mittelständische und junge Unternehmen attraktiv machen (z.B. Generationswechsel). Vereinfachungen u.a.: kein Gründungsbericht bei IHK, Freistellung von Unternehmensmitbestimmung unter 500 MA."
+        },
+        {
+          "id": "rf48",
+          "front": "AG: Vorteile?",
+          "back": "• Haftung nur mit Gesellschaftsvermögen\n• Große Zahl von Aktionären möglich → einfache Eigenkapitalbeschaffung (auch Belegschaftsaktien)\n• Aktien leicht und flexibel übertragbar (durch Verkauf, OHNE Notarakt — im Gegensatz zur GmbH)"
+        },
+        {
+          "id": "rf49",
+          "front": "AG: Nachteile?",
+          "back": "• Notarielle Beurkundung bei der Gründung\n• Eintragung ins Handelsregister + Publizitätspflicht (Veröffentlichung des Jahresabschlusses unabhängig von der Größe)\n• Mindestgrundkapital 50.000 €"
+        },
+        {
+          "id": "rf50",
+          "front": "Unterschied GmbH ↔ AG: Versammlung der Eigentümer? (JOT!)",
+          "back": "GmbH: Gesellschafterversammlung (besteht aus den Gesellschaftern).\nAG: Hauptversammlung — besteht NUR aus Aktionärsvertretern. KEINE Arbeitnehmervertreter in der HV!\n👉 Arbeitnehmervertreter sitzen ausschließlich im Aufsichtsrat (ab ≥ 500 MA)."
+        },
+        {
+          "id": "rf51",
+          "front": "Unterschied GmbH ↔ AG: Geschäftsführung? (JOT!)",
+          "back": "GmbH: Geschäftsführer (von Gesellschafterversammlung gewählt)\nAG: Vorstand (vom Aufsichtsrat bestellt)\n👉 Bei der AG heißt das Organ also ANDERS als bei der GmbH! Heißt „Vorstand\" statt „Geschäftsführer\"."
+        },
+        {
+          "id": "rf52",
+          "front": "Unterschied GmbH ↔ AG: Mindestkapital & Anteilsübertragung?",
+          "back": "Mindestkapital:\n• GmbH: 25.000 € Stammkapital (UG: ab 1 €)\n• AG: 50.000 € Grundkapital, zerlegt in Aktien\nAnteilsübertragung:\n• GmbH: Notarakt erforderlich (aufwendig)\n• AG: Aktien einfach durch Verkauf — OHNE Notarakt"
+        },
+        {
+          "id": "rf53",
+          "front": "Unterschied GmbH ↔ AG: Aufsichtsrat?",
+          "back": "GmbH: Aufsichtsrat NUR ZWINGEND bei > 500 Arbeitnehmern.\nAG: Aufsichtsrat IMMER zwingend — Zusammensetzung abhängig von der MA-Zahl (bis 499 / ab 500 / > 2.000)."
+        },
+        {
+          "id": "rf54",
+          "front": "Was ist eine GmbH & Co. KG?",
+          "back": "Sogenannte Grundtypenvermischung — Kommanditgesellschaft (KG, Personengesellschaft des Handelsrechts), deren persönlich haftender Gesellschafter (Komplementär) eine GmbH ist. In der Regel ist die GmbH der EINZIGE Komplementär = der einzige Vollhafter. Vorteile beider Rechtsformen werden kombiniert."
+        },
+        {
+          "id": "rf55",
+          "front": "GmbH & Co. KG: Personengleichheit vs. Personenverschiedenheit?",
+          "back": "Personengleichheit: Gesellschafter von GmbH und KG sind identisch.\nPersonenverschiedenheit: Es beteiligen sich auch Kommanditisten, die NICHT an der GmbH beteiligt sind."
+        },
+        {
+          "id": "rf56",
+          "front": "GmbH & Co. KG: Vorgehensweise der Umwandlung von einer KG? (JOT — SEHR KLAUSURRELEVANT!)",
+          "back": "1. Gründung einer GmbH (mit mind. 25.000 € Stammkapital, Notarakt)\n2. Diese GmbH tritt als Komplementärin in die bestehende KG ein\n3. Die bisherigen natürlichen Personen scheiden als Komplementäre aus und werden zu Kommanditisten\n4. Eintragung der neuen Struktur ins Handelsregister\n👉 Ergebnis: KG mit GmbH als alleinigem Vollhafter → faktisch beschränkte Haftung aller natürlichen Personen."
+        },
+        {
+          "id": "rf57",
+          "front": "Beweggründe für die Umwandlung einer KG in eine GmbH & Co. KG?",
+          "back": "• Haftungsbegrenzung: Komplementärin ist jetzt eine GmbH → keine natürliche Person haftet mehr mit Privatvermögen\n• Flexible Eigenkapitalerhöhung durch Aufnahme weiterer Kommanditisten\n• Drittorganschaft möglich (Nichtgesellschaftern können Leitungs-/Vertretungsbefugnisse übertragen werden)\n• Gewerbesteuerfreibetrag von 24.500 € als Personengesellschaft (steuerlich oft günstiger als reine GmbH)"
+        },
+        {
+          "id": "rf58",
+          "front": "GmbH & Co. KG: Vorteile?",
+          "back": "• Haftungsbegrenzung (Komplementärin ist eine GmbH)\n• Flexible Eigenkapitalerhöhung durch Aufnahme von Kommanditisten\n• Drittorganschaft: Nichtgesellschaftern können Leitungs-/Vertretungsbefugnisse übertragen werden („Möglichkeit der Drittorganschaft\")\n• Gewerbesteuerfreibetrag von 24.500 € (als Personengesellschaft)"
+        },
+        {
+          "id": "rf59",
+          "front": "GmbH & Co. KG: Nachteile?",
+          "back": "• Aufnahme von Fremdkapital schwierig (wegen Haftungsbeschränkung des Vollhafters)\n• Für die GmbH ist Stammkapital von 25.000 € erforderlich\n• Die GmbH muss für Haftungsrisiko, Geschäftsführung und Kapitaleinsatz angemessen entschädigt werden"
+        },
+        {
+          "id": "rf60",
+          "front": "Welche klausurrelevanten Rechtsformen haben KEIN Mindestkapital?",
+          "back": "Einzelunternehmung, OHG, KG.\n👉 Die UG hat formal nur 1 € Minimum.\n👉 GmbH: 25.000 €. AG: 50.000 €."
+        },
+        {
+          "id": "rf61",
+          "front": "Welche klausurrelevanten Rechtsformen erfordern eine Eintragung ins Handelsregister?",
+          "back": "OHG, KG, GmbH, UG, AG, GmbH & Co. KG → alle zwingend.\nEinzelunternehmung nur bei kaufmännisch eingerichtetem Geschäftsbetrieb (Kleingewerbetreibende ohne Kaufmannseigenschaft müssen NICHT ins HR — z.B. „Mini-Kiosk, wo Oma ab und zu hilft\")."
+        },
+        {
+          "id": "rf62",
+          "front": "Vergleiche: Einzelunternehmung vs. OHG",
+          "back": "Einzelunternehmung: 1 Person, formlose Gründung möglich, Haftung mit Privat- und Betriebsvermögen, HR-Eintrag nur bei kaufmännischem Betrieb.\nOHG: ≥ 2 Vollkaufleute, HR-Eintrag IMMER zwingend, solidarisch unbeschränkte Haftung aller, höheres Ansehen bei Banken."
         }
       ]
     },
